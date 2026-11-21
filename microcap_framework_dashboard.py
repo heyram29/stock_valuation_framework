@@ -61,21 +61,46 @@ st.markdown("""
         line-height: 1.2;
     }
 
-    /* Tabs: pill style, theme-aware */
-    .stTabs [data-baseweb="tab-list"] { gap: 0.4rem; }
-    .stTabs [data-baseweb="tab-list"] button {
+    /* Tabs: pill style, theme-aware. Uses ARIA roles so it works across Streamlit versions. */
+    [data-testid="stTabs"] [role="tablist"], .stTabs [role="tablist"] {
+        gap: 0.4rem;
+        border-bottom: none !important;
+        flex-wrap: wrap;
+    }
+    [data-testid="stTabs"] [role="tab"], .stTabs [role="tab"] {
+        border: 1px solid var(--line);
         border-radius: 999px;
         padding: 0.4rem 1rem;
         font-weight: 600;
-        border: 1px solid var(--line);
+        background: transparent;
+        color: inherit;
     }
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+    [data-testid="stTabs"] [role="tab"] p, .stTabs [role="tab"] p {
+        color: inherit !important;
+        font-weight: 600;
+    }
+    [data-testid="stTabs"] [role="tab"]:hover, .stTabs [role="tab"]:hover {
+        border-color: var(--accent);
+    }
+    [data-testid="stTabs"] [role="tab"][aria-selected="true"],
+    .stTabs [role="tab"][aria-selected="true"] {
         background: var(--brand);
         border-color: var(--brand);
-        color: #ffffff;
+        color: #ffffff !important;
     }
-    .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display: none; }
-    .stTabs [data-baseweb="tab-panel"] { padding-top: 1.1rem; }
+    [data-testid="stTabs"] [role="tab"][aria-selected="true"] p,
+    .stTabs [role="tab"][aria-selected="true"] p {
+        color: #ffffff !important;
+    }
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"],
+    [data-testid="stTabs"] [data-baseweb="tab-border"],
+    .stTabs [data-baseweb="tab-highlight"],
+    .stTabs [data-baseweb="tab-border"] {
+        display: none !important;
+    }
+    [data-testid="stTabs"] [role="tabpanel"], .stTabs [role="tabpanel"] {
+        padding-top: 1.1rem;
+    }
 
     /* Buttons */
     .stButton > button {
