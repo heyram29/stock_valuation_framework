@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.claude/
+.streamlit/secrets.toml
+watchlist.json
+conversation_export.md
