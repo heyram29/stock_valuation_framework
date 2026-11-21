@@ -14,36 +14,30 @@ st.set_page_config(
     page_title="Stock Valuation Framework",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ── Custom CSS Styling ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
+    /* Theme-aware: surfaces are translucent and text inherits Streamlit's light or dark colour */
     :root {
         --brand: #1a237e;
         --accent: #2962FF;
-        --ink: #0f172a;
-        --muted: #64748b;
-        --line: #e2e8f0;
-        --surface: #ffffff;
-        --bg: #f5f7fb;
-        --good: #15803d;
-        --warn: #b45309;
-        --bad: #b91c1c;
+        --muted: color-mix(in srgb, currentColor 65%, transparent);
+        --line: rgba(128, 128, 128, 0.25);
+        --surface: rgba(128, 128, 128, 0.08);
         --radius: 14px;
-        --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06);
+        --shadow: 0 1px 2px rgba(0,0,0,0.10), 0 4px 14px rgba(0,0,0,0.10);
     }
 
-    .stApp { background: var(--bg); }
     .block-container { padding-top: 1.25rem !important; max-width: 1400px; }
-    h1, h2, h3 { color: var(--ink); letter-spacing: -0.01em; }
-    h1 { margin-top: 0 !important; font-weight: 750; }
-    h2 { font-size: 1.45rem; }
+    h1 { margin-top: 0 !important; font-weight: 750; letter-spacing: -0.01em; }
+    h2 { font-size: 1.45rem; letter-spacing: -0.01em; }
     h3 { font-size: 1.15rem; font-weight: 650; }
     hr { margin: 1.5rem 0; border: none; border-top: 1px solid var(--line); }
 
-    /* Cards: metrics and bordered containers */
+    /* Metric cards */
     [data-testid="stMetric"] {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -52,10 +46,7 @@ st.markdown("""
         box-shadow: var(--shadow);
         transition: transform .15s ease, box-shadow .15s ease;
     }
-    [data-testid="stMetric"]:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(15,23,42,0.09);
-    }
+    [data-testid="stMetric"]:hover { transform: translateY(-1px); }
     [data-testid="stMetricLabel"] p {
         font-size: 0.78rem;
         font-weight: 600;
@@ -63,25 +54,20 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
-    [data-testid="stMetricValue"] { color: var(--ink); font-weight: 700; }
-    [data-testid="stVerticalBlockBorderWrapper"] > div > div[data-testid="stVerticalBlock"] {
-        border-radius: var(--radius);
-    }
-    div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div > [data-testid="stMarkdownContainer"] .rpt-head) {
-        background: var(--surface);
-        box-shadow: var(--shadow);
-        border-radius: var(--radius);
+    [data-testid="stMetricValue"] > div {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        line-height: 1.2;
     }
 
-    /* Tabs as pills */
-    .stTabs [data-baseweb="tab-list"] { gap: 0.4rem; border-bottom: none; flex-wrap: wrap; }
+    /* Tabs: pill style, theme-aware */
+    .stTabs [data-baseweb="tab-list"] { gap: 0.4rem; }
     .stTabs [data-baseweb="tab-list"] button {
-        background: var(--surface);
-        border: 1px solid var(--line);
         border-radius: 999px;
-        padding: 0.45rem 1.05rem;
-        color: var(--muted);
+        padding: 0.4rem 1rem;
         font-weight: 600;
+        border: 1px solid var(--line);
     }
     .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
         background: var(--brand);
@@ -106,46 +92,14 @@ st.markdown("""
     }
     .stButton > button[kind="primary"]:hover { color: #ffffff; filter: brightness(1.06); }
 
-    /* Expanders and inputs */
-    [data-testid="stExpander"] { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
-    [data-testid="stExpander"] summary { font-weight: 600; color: var(--ink); }
+    /* Expanders, inputs, containers */
+    [data-testid="stExpander"] { border: 1px solid var(--line); border-radius: var(--radius); }
     .stTextInput input, .stNumberInput input { border-radius: 10px; }
+    [data-testid="stVerticalBlockBorderWrapper"] { border-radius: var(--radius); }
+    [data-testid="stDataFrame"] { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+    [data-testid="stAlert"] { border-radius: 12px; }
 
-    /* Sidebar */
-    [data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--line); }
-    [data-testid="stSidebarUserContent"] { padding-top: 1rem; }
-    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0.45rem; }
-    [data-testid="stSidebar"] .stButton > button { padding: 0.15rem 0.45rem; font-size: 0.85rem; min-height: 0; }
-    [data-testid="stSidebar"] .stButton > button:hover { color: var(--bad); border-color: var(--bad); }
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { margin-bottom: 0; }
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
-        align-items: center;
-        background: #f8fafc;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 0.3rem 0.45rem;
-        margin-right: 14px;
-        transition: background .15s ease, border-color .15s ease;
-    }
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"]:hover {
-        background: #eef4ff;
-        border-color: #c7d7fe;
-    }
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stMarkdownContainer"] p {
-        font-weight: 700;
-        color: var(--ink);
-        letter-spacing: 0.02em;
-    }
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="column"]:last-child {
-        display: flex;
-        justify-content: flex-end;
-    }
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button {
-        min-width: 2rem;
-        width: auto;
-    }
-
-    /* App banner */
+    /* App banner (white text on brand gradient, so it reads in either theme) */
     .app-banner {
         background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
         color: #ffffff;
@@ -154,12 +108,7 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(26,35,126,0.25);
         margin-bottom: 1rem;
     }
-    .app-kicker {
-        font-size: 0.72rem;
-        letter-spacing: 0.14em;
-        font-weight: 700;
-        opacity: 0.8;
-    }
+    .app-kicker { font-size: 0.72rem; letter-spacing: 0.14em; font-weight: 700; opacity: 0.8; }
     .app-title { font-size: 1.9rem; font-weight: 750; margin: 0.25rem 0 0.3rem 0; letter-spacing: -0.01em; }
     .app-sub { font-size: 0.95rem; opacity: 0.92; }
     .app-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.9rem; }
@@ -182,9 +131,9 @@ st.markdown("""
         color: var(--muted);
     }
     .empty-state .big { font-size: 2.4rem; }
-    .empty-state .head { font-size: 1.2rem; font-weight: 700; color: var(--ink); margin: 0.5rem 0; }
+    .empty-state .head { font-size: 1.2rem; font-weight: 700; margin: 0.5rem 0; color: inherit; }
 
-    /* Stock hero card */
+    /* Stock hero card (white text on gradient) */
     .hero {
         background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
         color: #ffffff;
@@ -214,13 +163,12 @@ st.markdown("""
         margin-top: 0.6rem;
     }
 
-    /* Metric values wrap instead of truncating */
-    [data-testid="stMetricValue"] > div {
-        white-space: normal !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-        line-height: 1.2;
-    }
+    /* Summary report */
+    .rpt-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .rpt-badge { display: inline-block; color: #ffffff; border-radius: 999px; padding: 0.3rem 0.9rem; font-weight: 700; font-size: 0.9rem; }
+    .rpt-sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.35rem; }
+    .rpt-score { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .rpt-score span { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
 
     /* Report key facts: wrapping cards */
     .fact-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.5rem 0 1rem 0; }
@@ -234,17 +182,10 @@ st.markdown("""
         min-width: 0;
     }
     .fact-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .fact-value { font-size: 1.25rem; font-weight: 700; color: var(--ink); line-height: 1.25; margin-top: 0.2rem; overflow-wrap: anywhere; }
+    .fact-value { font-size: 1.25rem; font-weight: 700; line-height: 1.25; margin-top: 0.2rem; overflow-wrap: anywhere; }
     .fact-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
 
-    /* Summary report */
-    .rpt-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
-    .rpt-badge { display: inline-block; color: #ffffff; border-radius: 999px; padding: 0.3rem 0.9rem; font-weight: 700; font-size: 0.9rem; }
-    .rpt-sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.35rem; }
-    .rpt-score { font-size: 2.2rem; font-weight: 800; color: var(--brand); line-height: 1; }
-    .rpt-score span { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
-
-    /* Market tabs: header, summary cards, tile grid */
+    /* Market tabs: header (white text on gradient), summary cards, tile grid */
     .mk-head {
         background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
         color: #ffffff;
@@ -266,7 +207,7 @@ st.markdown("""
         box-shadow: var(--shadow);
     }
     .sum-h { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .sum-big { font-size: 1.6rem; font-weight: 750; color: var(--ink); margin-top: 0.2rem; }
+    .sum-big { font-size: 1.6rem; font-weight: 750; margin-top: 0.2rem; }
     .sum-small { font-size: 0.8rem; color: var(--muted); }
     .sum-chips { margin-top: 0.45rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
     .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
@@ -278,11 +219,13 @@ st.markdown("""
         box-shadow: var(--shadow);
     }
     .tile-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-    .tile-name { font-weight: 700; color: var(--ink); font-size: 0.95rem; line-height: 1.25; }
+    .tile-name { font-weight: 700; font-size: 0.95rem; line-height: 1.25; }
     .tile-sym { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
-    .tile-price { font-weight: 700; color: var(--ink); font-size: 1rem; white-space: nowrap; }
+    .tile-price { font-weight: 700; font-size: 1rem; white-space: nowrap; }
     .tile-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
     .tile-ret { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+
+    /* Chips keep their own light colours so they read in either theme */
     .chip-bull, .chip-bear, .chip-ob, .chip-os, .chip-mid, .chip-na {
         display: inline-block;
         border-radius: 999px;
@@ -295,12 +238,8 @@ st.markdown("""
     .chip-bear { background: #fee2e2; color: #7f1d1d; }
     .chip-ob { background: #ffedd5; color: #7c2d12; }
     .chip-os { background: #dbeafe; color: #1e3a8a; }
-    .chip-mid { background: #f1f5f9; color: #475569; }
-    .chip-na { background: #f8fafc; color: #94a3b8; border: 1px dashed #cbd5e1; }
-
-    /* Tables */
-    [data-testid="stDataFrame"] { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
-    [data-testid="stAlert"] { border-radius: 12px; }
+    .chip-mid { background: var(--surface); color: var(--muted); }
+    .chip-na { background: transparent; color: var(--muted); border: 1px dashed var(--line); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -394,50 +333,6 @@ def close_ticker(symbol):
 # ── Session state init ──────────────────────────────────────────────────────
 if "watchlist" not in st.session_state:
     st.session_state.watchlist = load_saved_watchlist()
-
-# ── Sidebar: watchlist manager ──────────────────────────────────────────────
-with st.sidebar:
-    with st.form("add_ticker", clear_on_submit=True, border=False):
-        new_ticker_input = st.text_input(
-            "Add a ticker",
-            placeholder="e.g. RKLB, NBIS, AAPL",
-        )
-        submitted = st.form_submit_button("➕ Add to watchlist", type="primary", use_container_width=True)
-    if submitted:
-        t = new_ticker_input.upper().strip()
-        if not t:
-            st.warning("Enter a ticker symbol first.")
-        elif t in st.session_state.watchlist:
-            st.warning(f"{t} is already in your watchlist.")
-        else:
-            st.session_state.watchlist.append(t)
-            save_watchlist(st.session_state.watchlist)
-            st.rerun()
-
-    if st.session_state.watchlist:
-        with st.container(height=300, border=False):
-            for t in list(st.session_state.watchlist):
-                col_name, col_btn = st.columns([4, 1], vertical_alignment="center")
-                col_name.markdown(f"**{html.escape(t)}**")
-                if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
-                    st.session_state.watchlist.remove(t)
-                    save_watchlist(st.session_state.watchlist)
-                    st.rerun()
-    else:
-        st.info("Your watchlist is empty.")
-        if st.button("🔄 Reset to default (RKLB)", use_container_width=True):
-            st.session_state.watchlist = ["RKLB"]
-            save_watchlist(st.session_state.watchlist)
-            st.rerun()
-
-    st.markdown("---")
-    with st.expander("📖 Scoring logic"):
-        st.markdown(SCORING_GUIDE)
-    with st.expander("📚 Key terms"):
-        st.markdown("\n\n".join(f"**{term}**: {meaning}" for term, meaning in GLOSSARY.items()))
-
-    st.markdown("---")
-    st.caption("💾 Saved automatically • Data from Yahoo Finance")
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -2318,6 +2213,52 @@ def show_stock_tab(ticker_sym):
     )
 
 
+def add_ticker_from_form():
+    t = st.session_state.get("add_ticker_input", "").upper().strip()
+    if not t:
+        st.session_state.add_msg = ("warning", "Enter a ticker symbol first.")
+    elif t in st.session_state.watchlist:
+        st.session_state.add_msg = ("warning", f"{t} is already in your watchlist.")
+    else:
+        st.session_state.watchlist.append(t)
+        save_watchlist(st.session_state.watchlist)
+        st.session_state.add_msg = ("success", f"Added {t}.")
+    st.session_state.add_ticker_input = ""
+
+
+def render_watchlist_panel():
+    wl = st.session_state.watchlist
+    with st.container(border=True):
+        head_l, head_r = st.columns([3, 1], vertical_alignment="center")
+        head_l.markdown("#### 📋 Watchlist")
+        head_r.markdown(
+            f"<div style='text-align:right;color:#64748b;font-weight:600'>"
+            f"{len(wl)} stock{'s' if len(wl) != 1 else ''}</div>",
+            unsafe_allow_html=True,
+        )
+        add_l, add_r = st.columns([4, 1], vertical_alignment="bottom")
+        add_l.text_input("Add a ticker", placeholder="e.g. RKLB, NBIS, AAPL", key="add_ticker_input",
+                         on_change=add_ticker_from_form)
+        add_r.button("➕ Add", type="primary", use_container_width=True, on_click=add_ticker_from_form)
+        msg = st.session_state.pop("add_msg", None)
+        if msg:
+            getattr(st, msg[0])(msg[1])
+
+        if wl:
+            for start in range(0, len(wl), 6):
+                cols = st.columns(6)
+                for col, t in zip(cols, wl[start:start + 6]):
+                    col.button(f"{t}  ✕", key=f"chip_{t}", on_click=close_ticker, args=(t,),
+                               use_container_width=True, help=f"Remove {t} from the watchlist")
+            st.caption("Click a ticker's ✕ to remove it. Changes are saved automatically.")
+        else:
+            st.info("Your watchlist is empty.")
+            if st.button("🔄 Reset to default (RKLB)", use_container_width=True):
+                st.session_state.watchlist = ["RKLB"]
+                save_watchlist(st.session_state.watchlist)
+                st.rerun()
+
+
 # ── Macro regime (independent of any stock) ─────────────────────────────────
 
 MACRO_SYMBOLS = [
@@ -3284,11 +3225,12 @@ with st.expander("How to use this app"):
 top_stocks, top_macro, top_indices, top_commodities = st.tabs(["📈 Stocks", "🌐 Macro", "📊 Indices", "🛢️ Commodities"])
 
 with top_stocks:
+    render_watchlist_panel()
     if not st.session_state.watchlist:
         st.markdown(
             '<div class="empty-state"><div class="big">📭</div>'
-            '<div class="head">Your watchlist is empty</div>'
-            'Add a ticker in the sidebar to see its framework score, valuation models and report.</div>',
+            '<div class="head">No stocks to analyse yet</div>'
+            'Add a ticker above to see its framework score, valuation models and report.</div>',
             unsafe_allow_html=True,
         )
     else:
@@ -3297,6 +3239,12 @@ with top_stocks:
         for tab, ticker_sym in zip(tabs, st.session_state.watchlist):
             with tab:
                 show_stock_tab(ticker_sym)
+
+    st.markdown("---")
+    with st.expander("📖 Scoring logic"):
+        st.markdown(SCORING_GUIDE)
+    with st.expander("📚 Key terms"):
+        st.markdown("\n\n".join(f"**{term}**: {meaning}" for term, meaning in GLOSSARY.items()))
 
 with top_macro:
     render_macro_tab()
