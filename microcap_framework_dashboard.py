@@ -20,9 +20,29 @@ st.set_page_config(
 # ── Custom CSS Styling ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Main container styling */
-    .main {
-        padding-top: 2rem;
+    /* Pull the page and sidebar content up toward the top edge */
+    .block-container {
+        padding-top: 1rem !important;
+    }
+    [data-testid="stSidebarUserContent"] {
+        padding-top: 0.75rem;
+    }
+    h1 {
+        margin-top: 0 !important;
+    }
+
+    /* Compact sidebar watchlist rows */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        gap: 0.4rem;
+    }
+    [data-testid="stSidebar"] .stButton > button {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    [data-testid="stSidebar"] .stButton > button:hover {
+        transform: none;
+        box-shadow: none;
     }
 
     /* Metric cards enhancement */
@@ -102,18 +122,37 @@ st.markdown("""
         border-radius: 3px;
     }
 
-    /* Sidebar brand block */
-    .brand {
-        padding: 0.25rem 0 0.75rem 0;
+    /* Summary report header */
+    .rpt-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
     }
-    .brand-title {
-        font-size: 1.35rem;
+    .rpt-badge {
+        display: inline-block;
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 0.3rem 0.9rem;
         font-weight: 700;
-        color: #1a237e;
-        line-height: 1.2;
+        font-size: 0.9rem;
     }
-    .brand-sub {
-        font-size: 0.85rem;
+    .rpt-sub {
+        color: #5f6368;
+        font-size: 0.9rem;
+        margin-top: 0.35rem;
+    }
+    .rpt-score {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #1a237e;
+        line-height: 1;
+    }
+    .rpt-score span {
+        font-size: 0.95rem;
+        font-weight: 600;
         color: #5f6368;
     }
 
@@ -188,12 +227,6 @@ if "watchlist" not in st.session_state:
 
 # ── Sidebar: watchlist manager ──────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(
-        '<div class="brand"><div class="brand-title">📈 Stock Valuation<br>Framework</div>'
-        '<div class="brand-sub">Watchlist &amp; quick analysis</div></div>',
-        unsafe_allow_html=True,
-    )
-
     with st.form("add_ticker", clear_on_submit=True, border=False):
         new_ticker_input = st.text_input(
             "Add a ticker",
@@ -211,22 +244,14 @@ with st.sidebar:
             save_watchlist(st.session_state.watchlist)
             st.rerun()
 
-    st.markdown("---")
-
-    count = len(st.session_state.watchlist)
-    head_l, head_r = st.columns([2, 1])
-    head_l.markdown("**Your watchlist**")
-    head_r.markdown(f"<div style='text-align:right;color:#5f6368'>{count} stock{'s' if count != 1 else ''}</div>", unsafe_allow_html=True)
-
     if st.session_state.watchlist:
         for t in list(st.session_state.watchlist):
-            with st.container(border=True):
-                col_name, col_btn = st.columns([3, 1], vertical_alignment="center")
-                col_name.markdown(f"**{html.escape(t)}**")
-                if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
-                    st.session_state.watchlist.remove(t)
-                    save_watchlist(st.session_state.watchlist)
-                    st.rerun()
+            col_name, col_btn = st.columns([4, 1], vertical_alignment="center")
+            col_name.markdown(f"**{html.escape(t)}**")
+            if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
+                st.session_state.watchlist.remove(t)
+                save_watchlist(st.session_state.watchlist)
+                st.rerun()
     else:
         st.info("Your watchlist is empty.")
         if st.button("🔄 Reset to default (RKLB)", use_container_width=True):
@@ -388,9 +413,12 @@ def parse_stock_data(raw):
     )
 
 
-PILLARS = ["Quality", "Management", "Growth", "Valuation", "Risk", "Smart Money"]
-# Quality, ownership and growth carry the most weight (Fisher/Cassel/Mayer); valuation is a discipline check
-PILLAR_MAX = {"Quality": 4, "Management": 3, "Growth": 3, "Valuation": 3, "Risk": 3, "Smart Money": 2}
+PILLARS = ["Quality", "Capital Allocation", "Management", "Growth", "Valuation", "Risk", "Dilution", "Cash Quality", "Smart Money"]
+# Returns on capital, growth and ownership carry the most weight (Fisher/Cassel/Mayer); valuation is a discipline check
+PILLAR_MAX = {
+    "Quality": 3, "Capital Allocation": 3, "Management": 3, "Growth": 4, "Valuation": 3,
+    "Risk": 3, "Dilution": 2, "Cash Quality": 2, "Smart Money": 2,
+}
 
 
 def compute_roic(financials, balance, tax_default=0.21):
@@ -427,10 +455,33 @@ def compute_roic(financials, balance, tax_default=0.21):
         return None
 
 
-def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=None):
-    """Score a stock on the five pillars. Returns (scores, explanations, maxes); maxes shrink when data is missing."""
+def compute_quarterly_metrics(q_financials):
+    """Quarterly revenue consistency and gross-margin change, from the last quarters yfinance provides."""
+    out = {"qoq_pos": 0, "qoq_n": 0, "gm_first": None, "gm_last": None}
+    try:
+        if q_financials is None or q_financials.empty:
+            return out
+        cols = sorted(q_financials.columns)
+        rev_row = next((r for r in ["Total Revenue", "Operating Revenue"] if r in q_financials.index), None)
+        if rev_row is None:
+            return out
+        rev = pd.to_numeric(q_financials.loc[rev_row, cols], errors="coerce")
+        qoq = rev.pct_change(fill_method=None).dropna()
+        out["qoq_pos"], out["qoq_n"] = int((qoq > 0).sum()), int(len(qoq))
+        if "Gross Profit" in q_financials.index:
+            gm = (pd.to_numeric(q_financials.loc["Gross Profit", cols], errors="coerce") / rev * 100).dropna()
+            if len(gm) >= 2:
+                out["gm_first"], out["gm_last"] = float(gm.iloc[0]), float(gm.iloc[-1])
+    except Exception:
+        pass
+    return out
+
+
+def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=None, qm=None):
+    """Score a stock on every pillar. Returns (scores, explanations, maxes); maxes shrink when data is missing."""
     scores, explanations = {}, {}
     maxes = dict(PILLAR_MAX)
+    qm = qm or {}
 
     def sg(key, default=None):
         return safe_get(info, key, default)
@@ -447,18 +498,36 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=
     total_cash = sg("totalCash")
     total_debt = sg("totalDebt")
 
-    # 1. Quality
+    # 1. Quality — margins and whether gross margin is expanding
     q, qn = 0, []
-    # ROIC is preferred: ROE is distorted by tiny or negative equity, common in micro-caps
-    ret, ret_name = (roic, "ROIC") if roic is not None else (roe, "ROE (ROIC n/a)")
-    if ret is not None and ret > 0.15:   q += 2; qn.append(f"High {ret_name} ({ret*100:.0f}%)")
-    elif ret is not None and ret > 0.08: q += 1; qn.append(f"Moderate {ret_name} ({ret*100:.0f}%)")
-    else:                                       qn.append(f"Low/negative {ret_name}")
     if op_margin and op_margin > 0.15: q += 1; qn.append("Strong op margin")
     elif op_margin and op_margin > 0:         qn.append("Positive op margin")
     if gross_margin and gross_margin > 0.40: q += 1; qn.append(f"Pricing power (gross margin {gross_margin*100:.0f}%)")
+    if qm.get("gm_first") is not None:
+        gm_diff = qm["gm_last"] - qm["gm_first"]
+        if gm_diff > 2:    q += 1; qn.append(f"Gross margin expanding ({qm['gm_first']:.0f}% → {qm['gm_last']:.0f}%)")
+        elif gm_diff < -2:         qn.append(f"Gross margin contracting ({qm['gm_first']:.0f}% → {qm['gm_last']:.0f}%)")
+        else:                      qn.append("Gross margin stable")
+    else:
+        maxes["Quality"] -= 1
     scores["Quality"] = min(q, PILLAR_MAX["Quality"])
     explanations["Quality"] = "; ".join(qn) or "Limited data"
+
+    # 1b. Capital Allocation — return on capital, and whether growth is being reinvested at high returns
+    ca, can = 0, []
+    # ROIC is preferred: ROE is distorted by tiny or negative equity, common in micro-caps
+    ret, ret_name = (roic, "ROIC") if roic is not None else (roe, "ROE (ROIC n/a)")
+    if ret is None:
+        maxes["Capital Allocation"] = 0
+        can.append("Return on capital unavailable — excluded from score")
+    else:
+        if ret > 0.15:   ca += 2; can.append(f"High {ret_name} ({ret*100:.0f}%)")
+        elif ret > 0.08: ca += 1; can.append(f"Moderate {ret_name} ({ret*100:.0f}%)")
+        else:                     can.append(f"Low/negative {ret_name} ({ret*100:.0f}%)")
+        if ret >= 0.10 and rev_growth and rev_growth > 0.10:
+            ca += 1; can.append("Reinvesting at high returns (return ≥10% while growing)")
+    scores["Capital Allocation"] = min(ca, PILLAR_MAX["Capital Allocation"])
+    explanations["Capital Allocation"] = "; ".join(can)
 
     # 2. Management — missing insider data is excluded from the score, not counted as zero
     m, mn = 0, []
@@ -480,6 +549,13 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=
     if earn_growth and earn_growth > 0.15: g += 1; gn.append("Positive earnings growth")
     elif earn_growth is None and rev_growth and rev_growth > 0.40:
         g += 1; gn.append("Hyper-growth (>40% revenue) stands in for earnings growth")
+    if qm.get("qoq_n", 0) >= 4:
+        if qm["qoq_pos"] / qm["qoq_n"] >= 0.75:
+            g += 1; gn.append(f"Consistent growth ({qm['qoq_pos']}/{qm['qoq_n']} quarters up QoQ)")
+        else:
+            gn.append(f"Lumpy revenue ({qm['qoq_pos']}/{qm['qoq_n']} quarters up QoQ)")
+    else:
+        maxes["Growth"] -= 1
     scores["Growth"] = min(g, PILLAR_MAX["Growth"])
     explanations["Growth"] = "; ".join(gn)
 
@@ -590,12 +666,41 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=
         rn.append("Debt data unavailable")
     if total_cash and (total_cash - (total_debt or 0)) > 0:
         r += 1; rn.append("Net cash positive")
-    if dilution_pct is not None:
-        if dilution_pct > 50:   r -= 2; rn.append(f"Heavy dilution ({dilution_pct:+.0f}% shares, 3y)")
-        elif dilution_pct > 25: r -= 1; rn.append(f"Notable dilution ({dilution_pct:+.0f}% shares, 3y)")
-        elif dilution_pct <= 5:         rn.append(f"Disciplined share count ({dilution_pct:+.0f}%, 3y)")
+    short_pct = sg("shortPercentOfFloat")
+    if short_pct is not None and short_pct > 0.20:
+        r -= 1; rn.append(f"High short interest ({short_pct*100:.0f}% of float)")
     scores["Risk"] = max(0, min(r, PILLAR_MAX["Risk"]))
     explanations["Risk"] = "; ".join(rn)
+
+    # Dilution — 3-year change in share count
+    dl, dln = 0, []
+    if dilution_pct is None:
+        maxes["Dilution"] = 0
+        dln.append("Share count history unavailable — excluded from score")
+    elif dilution_pct <= 5:  dl += 2; dln.append(f"Disciplined share count ({dilution_pct:+.0f}% over 3y)")
+    elif dilution_pct <= 25: dl += 1; dln.append(f"Moderate dilution ({dilution_pct:+.0f}% over 3y)")
+    else:                             dln.append(f"Heavy dilution ({dilution_pct:+.0f}% over 3y)")
+    scores["Dilution"] = min(dl, PILLAR_MAX["Dilution"])
+    explanations["Dilution"] = "; ".join(dln)
+
+    # Cash Quality — free cash flow sign, and how much net income it converts to
+    cq, cqn = 0, []
+    fcf_c = sg("freeCashflow")
+    ni_c = sg("netIncomeToCommon")
+    if fcf_c is None:
+        maxes["Cash Quality"] -= 2
+    else:
+        if fcf_c > 0: cq += 1; cqn.append("Positive free cash flow")
+        else:                  cqn.append("Negative free cash flow")
+        if ni_c is None or ni_c <= 0:
+            maxes["Cash Quality"] -= 1
+            if ni_c is not None: cqn.append("Loss-making — cash conversion not meaningful")
+        else:
+            conv = fcf_c / ni_c
+            if conv >= 0.8: cq += 1; cqn.append(f"Strong cash conversion (FCF {conv*100:.0f}% of net income)")
+            else:                    cqn.append(f"Weak cash conversion (FCF {conv*100:.0f}% of net income)")
+    scores["Cash Quality"] = min(cq, PILLAR_MAX["Cash Quality"])
+    explanations["Cash Quality"] = "; ".join(cqn) if maxes["Cash Quality"] else "Cash flow data unavailable — excluded from score"
 
     # 6. Smart Money — 1 pt for net insider buying (12m), 1 pt for top holders adding shares (latest quarter)
     flow = flow or {}
@@ -624,6 +729,106 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=
     explanations["Smart Money"] = "; ".join(smn)
 
     return scores, explanations, maxes
+
+
+def build_report_parts(ticker, name, sector, price, mcap, scores, maxes, explanations, score_pct, is_loss_making, runway_months, dilution_pct, flow):
+    """Structured summary of the scoring, built from the same numbers shown on screen."""
+    total, possible = sum(scores.values()), sum(maxes.values())
+    gaps = [c for c in PILLARS if not maxes[c]]
+    facts = [("Pillars scored", f"{len(PILLARS) - len(gaps)}/{len(PILLARS)}")]
+    if runway_months is not None:
+        facts.append(("Cash runway", f"~{runway_months:.0f} mo"))
+    if dilution_pct is not None:
+        facts.append(("Share change, 3y", f"{dilution_pct:+.0f}%"))
+    if flow.get("ins_ok"):
+        facts.append(("Insider trades, 12m", f"{flow['buy_n']} buys · {flow['sell_n']} sales"))
+    return {
+        "ticker": ticker,
+        "name": str(name),
+        "sector": str(sector),
+        "price": price,
+        "market_cap": format_number(mcap, is_currency=True),
+        "is_loss_making": is_loss_making,
+        "total": total,
+        "possible": possible,
+        "score_pct": score_pct,
+        "verdict": "Strong alignment" if score_pct >= 70 else "Mixed signals" if score_pct >= 45 else "Weak alignment",
+        "strengths": [(c, scores[c], maxes[c], explanations[c]) for c in PILLARS if maxes[c] and scores[c] / maxes[c] >= 0.75],
+        "concerns": [(c, scores[c], maxes[c], explanations[c]) for c in PILLARS if maxes[c] and scores[c] / maxes[c] < 0.5],
+        "gaps": gaps,
+        "facts": facts,
+    }
+
+
+def report_markdown(p):
+    lines = [
+        f"# {p['name']} ({p['ticker']}) — Framework Report",
+        f"*Quantitative screen as of {datetime.now():%Y-%m-%d}. Not investment advice.*",
+        "",
+        f"**{p['verdict']}:** {p['total']}/{p['possible']} points ({p['score_pct']:.0f}%).",
+        f"{p['sector']} · Market cap {p['market_cap']}" + (f" · Price ${p['price']:.2f}" if p["price"] else ""),
+    ]
+    if p["is_loss_making"]:
+        lines.append("Loss-making: valuation relies on EV/sales vs growth and cash runway, not earnings multiples.")
+    lines.append("")
+    if p["strengths"]:
+        lines.append("**Strengths**")
+        lines += [f"- **{c}** {s}/{m}: {e}" for c, s, m, e in p["strengths"]]
+        lines.append("")
+    if p["concerns"]:
+        lines.append("**Concerns**")
+        lines += [f"- **{c}** {s}/{m}: {e}" for c, s, m, e in p["concerns"]]
+        lines.append("")
+    lines.append("**Key facts:** " + "; ".join(f"{k}: {v}" for k, v in p["facts"] if k != "Pillars scored") + ".")
+    lines.append("")
+    if p["gaps"]:
+        lines.append(f"**Not scored (missing data):** {', '.join(p['gaps'])}.")
+        lines.append("")
+    lines.append("**Before acting:** read the latest 10-K and 10-Q, test the concerns above against the filings, and check why insiders are buying or selling.")
+    return "\n".join(lines)
+
+
+def md_safe(text):
+    return str(text).replace("$", "\\$")
+
+
+def render_report(p):
+    color = {"Strong alignment": "#2e7d32", "Mixed signals": "#b26a00", "Weak alignment": "#c62828"}[p["verdict"]]
+    st.markdown(
+        f'<div class="rpt-head">'
+        f'<div><span class="rpt-badge" style="background:{color}">{html.escape(p["verdict"])}</span>'
+        f'<div class="rpt-sub">{html.escape(p["name"])} · {html.escape(p["sector"])}</div></div>'
+        f'<div class="rpt-score">{p["total"]}<span> / {p["possible"]} pts · {p["score_pct"]:.0f}%</span></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    st.progress(min(p["score_pct"] / 100, 1.0))
+    subtitle = f"Market cap {p['market_cap']}" + (f" · Price ${p['price']:.2f}" if p["price"] else "")
+    st.caption(md_safe(subtitle) + (" · Loss-making: valuation uses EV/sales vs growth and cash runway" if p["is_loss_making"] else ""))
+
+    for col, (label, value) in zip(st.columns(len(p["facts"])), p["facts"]):
+        col.metric(label, md_safe(value))
+
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**Strengths**")
+        if not p["strengths"]:
+            st.caption("No pillar reached 75% of its points.")
+        for c, s, m, e in p["strengths"]:
+            st.markdown(f"✅ **{c}** · {s}/{m}")
+            st.caption(md_safe(e))
+    with right:
+        st.markdown("**Concerns**")
+        if not p["concerns"]:
+            st.caption("No pillar fell below 50% of its points.")
+        for c, s, m, e in p["concerns"]:
+            icon = "⚠️" if s / m >= 0.25 else "❌"
+            st.markdown(f"{icon} **{c}** · {s}/{m}")
+            st.caption(md_safe(e))
+
+    if p["gaps"]:
+        st.caption(f"Not scored (missing data): {', '.join(p['gaps'])}.")
+    st.caption("Before acting: read the latest 10-K and 10-Q, test the concerns above against the filings, and check why insiders are buying or selling.")
 
 
 # ── Per-stock analysis renderer ─────────────────────────────────────────────
@@ -737,7 +942,8 @@ def show_stock_tab(ticker_sym):
 
     roic = compute_roic(financials, balance)
     flow = get_flow_data(ticker_sym)
-    scores, explanations, maxes = compute_scores(info, runway_months, dilution_pct, roic, flow)
+    qm = compute_quarterly_metrics(q_financials)
+    scores, explanations, maxes = compute_scores(info, runway_months, dilution_pct, roic, flow, qm)
     total_possible = sum(maxes.values())
     total_score = sum(scores.values())
     score_pct = (total_score / total_possible) * 100 if total_possible else 0
@@ -753,6 +959,19 @@ def show_stock_tab(ticker_sym):
         f'</div>',
         unsafe_allow_html=True,
     )
+
+    report = build_report_parts(ticker_sym, name, sector, price, mcap, scores, maxes, explanations,
+                                score_pct, is_loss_making, runway_months, dilution_pct, flow)
+    with st.container(border=True):
+        st.markdown("#### 📝 Summary report")
+        render_report(report)
+        st.download_button(
+            "⬇️ Download report (.md)",
+            data=report_markdown(report),
+            file_name=f"{ticker_sym}_framework_report.md",
+            mime="text/markdown",
+            key=f"report_{ticker_sym}",
+        )
 
     # ── Header section ──
     header_col1, header_col2 = st.columns([2, 1])
@@ -831,15 +1050,15 @@ def show_stock_tab(ticker_sym):
 
     # ── Framework checklist details ──
     st.subheader("📋 Detailed Score Explanations")
-    cols = st.columns(len(PILLARS))
-    for i, cat in enumerate(PILLARS):
-        with cols[i]:
-            pct = pillar_pct[cat]
-            badge = "⚪" if pct is None else "✅" if pct >= 75 else "⚠️" if pct >= 50 else "❌"
+    for row_start in range(0, len(PILLARS), 3):
+        for col, cat in zip(st.columns(3), PILLARS[row_start:row_start + 3]):
+            with col:
+                pct = pillar_pct[cat]
+                badge = "⚪" if pct is None else "✅" if pct >= 75 else "⚠️" if pct >= 50 else "❌"
 
-            st.markdown(f"### {badge} {cat}")
-            st.markdown(f"**Score:** {scores[cat]}/{maxes[cat]}" if pct is not None else "**Score:** N/A")
-            st.caption(explanations[cat])
+                st.markdown(f"### {badge} {cat}")
+                st.markdown(f"**Score:** {scores[cat]}/{maxes[cat]}" if pct is not None else "**Score:** N/A")
+                st.caption(explanations[cat])
 
     st.markdown("---")
 
@@ -1260,7 +1479,7 @@ def show_stock_tab(ticker_sym):
         p2.metric("ROIC (NOPAT ÷ debt + equity)", f"{roic*100:.1f}%" if roic is not None else "N/A")
         st.info(
             "**Framework note**: High sustainable ROIC + positive margins = multi-bagger potential. "
-            "ROIC drives the Quality score (ROE is the fallback when statements are unavailable)."
+            "ROIC drives the Capital Allocation score (ROE is the fallback when statements are unavailable)."
         )
 
     with dtab3:
