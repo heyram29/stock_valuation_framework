@@ -20,178 +20,184 @@ st.set_page_config(
 # ── Custom CSS Styling ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Pull the page and sidebar content up toward the top edge */
-    .block-container {
-        padding-top: 1rem !important;
-    }
-    [data-testid="stSidebarUserContent"] {
-        padding-top: 0.75rem;
-    }
-    h1 {
-        margin-top: 0 !important;
-    }
-
-    /* Compact sidebar watchlist rows */
-    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-        gap: 0.4rem;
-    }
-    [data-testid="stSidebar"] .stButton > button {
-        padding: 0.2rem 0.5rem;
-        font-size: 0.85rem;
-        border-radius: 6px;
-    }
-    [data-testid="stSidebar"] .stButton > button:hover {
-        transform: none;
-        box-shadow: none;
+    :root {
+        --brand: #1a237e;
+        --accent: #2962FF;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --surface: #ffffff;
+        --bg: #f5f7fb;
+        --good: #15803d;
+        --warn: #b45309;
+        --bad: #b91c1c;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 14px rgba(15,23,42,0.06);
     }
 
-    /* Metric cards enhancement */
-    [data-testid="metric-container"] {
-        background-color: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border-left: 4px solid #2962FF;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
+    .stApp { background: var(--bg); }
+    .block-container { padding-top: 1.25rem !important; max-width: 1400px; }
+    h1, h2, h3 { color: var(--ink); letter-spacing: -0.01em; }
+    h1 { margin-top: 0 !important; font-weight: 750; }
+    h2 { font-size: 1.45rem; }
+    h3 { font-size: 1.15rem; font-weight: 650; }
+    hr { margin: 1.5rem 0; border: none; border-top: 1px solid var(--line); }
 
-    [data-testid="metric-container"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    /* Cards: metrics and bordered containers */
+    [data-testid="stMetric"] {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 0.95rem 1.05rem;
+        box-shadow: var(--shadow);
+        transition: transform .15s ease, box-shadow .15s ease;
     }
-
-    /* Title styling */
-    h1 {
-        color: #1a237e;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(15,23,42,0.09);
     }
-
-    h2, h3 {
-        color: #1a237e;
+    [data-testid="stMetricLabel"] p {
+        font-size: 0.78rem;
         font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    [data-testid="stMetricValue"] { color: var(--ink); font-weight: 700; }
+    [data-testid="stVerticalBlockBorderWrapper"] > div > div[data-testid="stVerticalBlock"] {
+        border-radius: var(--radius);
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(> div > div > [data-testid="stMarkdownContainer"] .rpt-head) {
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        border-radius: var(--radius);
     }
 
-    /* Tabs styling */
+    /* Tabs as pills */
+    .stTabs [data-baseweb="tab-list"] { gap: 0.4rem; border-bottom: none; flex-wrap: wrap; }
     .stTabs [data-baseweb="tab-list"] button {
-        font-weight: 600;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        margin-right: 0.5rem;
-    }
-
-    /* Alert boxes */
-    .stSuccess, .stError, .stWarning, .stInfo {
-        border-radius: 8px;
-        padding: 1rem;
-        font-weight: 500;
-    }
-
-    /* Dataframe styling */
-    [data-testid="dataframe"] {
-        font-size: 0.95rem;
-    }
-
-    /* Divider */
-    hr {
-        margin: 2rem 0;
-        border: 1px solid #e0e0e0;
-    }
-
-    /* Button styling */
-    .stButton > button {
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    /* Tabs: underline the active tab instead of boxing it */
-    .stTabs [data-baseweb="tab-list"] button {
-        border-radius: 8px 8px 0 0;
-        padding: 0.6rem 1.1rem;
-        margin-right: 0.25rem;
-    }
-    .stTabs [data-baseweb="tab-highlight"] {
-        height: 3px;
-        border-radius: 3px;
-    }
-
-    /* Summary report header */
-    .rpt-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-    .rpt-badge {
-        display: inline-block;
-        color: #ffffff;
+        background: var(--surface);
+        border: 1px solid var(--line);
         border-radius: 999px;
-        padding: 0.3rem 0.9rem;
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-    .rpt-sub {
-        color: #5f6368;
-        font-size: 0.9rem;
-        margin-top: 0.35rem;
-    }
-    .rpt-score {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #1a237e;
-        line-height: 1;
-    }
-    .rpt-score span {
-        font-size: 0.95rem;
+        padding: 0.45rem 1.05rem;
+        color: var(--muted);
         font-weight: 600;
-        color: #5f6368;
+    }
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #ffffff;
+    }
+    .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display: none; }
+    .stTabs [data-baseweb="tab-panel"] { padding-top: 1.1rem; }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        transition: all .15s ease;
+    }
+    .stButton > button:hover { border-color: var(--accent); color: var(--accent); }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, var(--brand), var(--accent));
+        border: none;
+        color: #ffffff;
+    }
+    .stButton > button[kind="primary"]:hover { color: #ffffff; filter: brightness(1.06); }
+
+    /* Expanders and inputs */
+    [data-testid="stExpander"] { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    [data-testid="stExpander"] summary { font-weight: 600; color: var(--ink); }
+    .stTextInput input, .stNumberInput input { border-radius: 10px; }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--line); }
+    [data-testid="stSidebarUserContent"] { padding-top: 1rem; }
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0.45rem; }
+    [data-testid="stSidebar"] .stButton > button { padding: 0.15rem 0.45rem; font-size: 0.85rem; min-height: 0; }
+    [data-testid="stSidebar"] .stButton > button:hover { color: var(--bad); border-color: var(--bad); }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { margin-bottom: 0; }
+
+    /* App banner */
+    .app-banner {
+        background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
+        color: #ffffff;
+        border-radius: 18px;
+        padding: 1.5rem 1.75rem;
+        box-shadow: 0 10px 30px rgba(26,35,126,0.25);
+        margin-bottom: 1rem;
+    }
+    .app-kicker {
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        font-weight: 700;
+        opacity: 0.8;
+    }
+    .app-title { font-size: 1.9rem; font-weight: 750; margin: 0.25rem 0 0.3rem 0; letter-spacing: -0.01em; }
+    .app-sub { font-size: 0.95rem; opacity: 0.92; }
+    .app-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.9rem; }
+    .app-chips span {
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.28);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.78rem;
+        font-weight: 600;
     }
 
-    /* Hero card at the top of each stock tab */
+    /* Empty state */
+    .empty-state {
+        background: var(--surface);
+        border: 2px dashed var(--line);
+        border-radius: 18px;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        color: var(--muted);
+    }
+    .empty-state .big { font-size: 2.4rem; }
+    .empty-state .head { font-size: 1.2rem; font-weight: 700; color: var(--ink); margin: 0.5rem 0; }
+
+    /* Stock hero card */
     .hero {
         background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
         color: #ffffff;
-        border-radius: 14px;
+        border-radius: 18px;
         padding: 1.4rem 1.6rem;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 14px rgba(26,35,126,0.25);
+        box-shadow: 0 8px 24px rgba(26,35,126,0.22);
     }
     .hero-ticker {
         display: inline-block;
         background: rgba(255,255,255,0.18);
         border-radius: 6px;
         padding: 0.1rem 0.55rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-    }
-    .hero-name {
-        font-size: 1.6rem;
+        font-size: 0.8rem;
         font-weight: 700;
-        margin: 0.4rem 0 0.2rem 0;
+        letter-spacing: 0.06em;
     }
-    .hero-meta {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
+    .hero-name { font-size: 1.6rem; font-weight: 750; margin: 0.4rem 0 0.2rem 0; }
+    .hero-meta { font-size: 0.9rem; opacity: 0.9; }
     .hero-pill {
         display: inline-block;
         background: #ffffff;
-        color: #1a237e;
+        color: var(--brand);
         border-radius: 999px;
         padding: 0.35rem 0.9rem;
         font-weight: 700;
         margin-top: 0.6rem;
     }
+
+    /* Summary report */
+    .rpt-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .rpt-badge { display: inline-block; color: #ffffff; border-radius: 999px; padding: 0.3rem 0.9rem; font-weight: 700; font-size: 0.9rem; }
+    .rpt-sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.35rem; }
+    .rpt-score { font-size: 2.2rem; font-weight: 800; color: var(--brand); line-height: 1; }
+    .rpt-score span { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+
+    /* Tables */
+    [data-testid="stDataFrame"] { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+    [data-testid="stAlert"] { border-radius: 12px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -220,6 +226,66 @@ def save_watchlist(tickers):
             json.dump(list(dict.fromkeys(tickers)), f, indent=2)
     except Exception:
         pass
+
+GLOSSARY = {
+    "Framework score": "Sum of pillar points out of the maximum available. 70%+ is strong, 45–70% mixed, below 45% weak.",
+    "ROIC": "Return on invested capital: after-tax operating profit ÷ (debt + equity). How well the business turns capital into profit.",
+    "ROE": "Return on equity: net income ÷ shareholders' equity. Used for Capital Allocation only when ROIC can't be computed; distorted when equity is tiny or negative.",
+    "Operating margin": "Operating income ÷ revenue. Above 15% earns a Quality point.",
+    "Gross margin": "(Revenue − cost of sales) ÷ revenue. Above 40% signals pricing power.",
+    "P/E": "Price ÷ earnings per share. Meaningless for loss-makers, so it is suppressed for them.",
+    "PEG": "P/E ÷ earnings growth rate. Below 1.5 is attractive (Peter Lynch's rule of thumb).",
+    "P/S": "Market cap ÷ revenue. Used when EV/Sales isn't available.",
+    "P/B": "Price ÷ book value per share. Shown for reference; not scored.",
+    "EV/Sales": "Enterprise value (market cap + debt − cash) ÷ revenue. The main multiple for pre-profit companies.",
+    "EV/EBITDA": "Enterprise value ÷ EBITDA (earnings before interest, tax, depreciation and amortization). Below 12× earns a point.",
+    "FCF yield": "Free cash flow ÷ market cap. Above 8% is strong.",
+    "Cash runway": "Cash ÷ monthly cash burn: months the company can operate before needing new funding. 18+ months earns a point for loss-makers.",
+    "Net cash % of market cap": "(Cash − debt) ÷ market cap. Above 30% gives a downside cushion.",
+    "Rule of 40": "Revenue growth % + operating margin %. 40+ is the SaaS benchmark for an elite business.",
+    "EV/Gross profit": "Enterprise value ÷ gross profit. Price relative to the margin the business earns on sales.",
+    "Debt/Equity": "Total debt ÷ shareholders' equity, shown as a ratio. Below 0.5× earns 2 Risk points.",
+    "Cash conversion": "Free cash flow ÷ net income. 80%+ means reported profit turns into cash.",
+    "Dilution": "Change in shares outstanding over 3 years. A rising share count dilutes each holder's stake.",
+    "Short interest": "Share of the float sold short. Above 20% costs one Risk point.",
+    "Insider ownership": "Share of stock held by company insiders. Above 10% signals strong alignment.",
+    "Smart money": "Insider open-market buys and sales over 12 months, plus whether top institutional holders added or trimmed shares in the latest quarter.",
+    "Scenario model": "Projects revenue, EBITDA and exit value in N years, subtracts cash burn and shares issued to fund it, then discounts back at your required return.",
+    "Reverse DCF": "Finds the revenue growth rate that makes the scenario model equal today's price.",
+    "Peer regression": "Fits EV/Sales against revenue growth for peer companies, then reads off the multiple this company's growth would earn.",
+    "R²": "Share of the variation in peer multiples that growth explains. Closer to 1 is a tighter fit; below 0.3 is weak.",
+    "Discount rate": "Required annual return used to bring future value back to today. Higher means more conservative.",
+}
+
+SCORING_GUIDE = """
+**Quality (3)**: operating margin above 15% (1); gross margin above 40% (1); gross margin expanding more than 2 points (1).
+
+**Capital Allocation (3)**: ROIC above 15% (2) or above 8% (1); ROIC of 10%+ while revenue grows above 10% (1).
+
+**Management (3)**: insider ownership above 20% (3), above 10% (2), above 3% (1).
+
+**Growth (4)**: revenue growth above 20% (2) or above 10% (1); earnings growth above 15% (1), or revenue growth above 40% when earnings growth is missing; at least 75% of recent quarters up on the quarter before (1).
+
+**Valuation (3)**. Profitable companies: PEG between 0 and 1.5 (2) or below 2.5 (1); EV/Sales below 3× (1); EV/EBITDA between 0 and 12× (1); FCF yield above 8% (1). Loss-makers: EV/Sales against a "fair" multiple of growth ÷ 10 (2 if below 0.7× fair, 1 if below 1.3×); cash runway of 18+ months (1); net cash above 30% of market cap (1).
+
+**Risk (3)**: debt/equity below 0.5× (2) or below 1.5× (1); net cash positive (1); short interest above 20% of float (−1).
+
+**Dilution (2)**: share count up 5% or less over 3 years (2); up 25% or less (1).
+
+**Cash Quality (2)**: positive free cash flow (1); free cash flow at least 80% of net income (1, profitable companies only).
+
+**Smart Money (2)**: net insider buying over 12 months (1); more top-10 institutional holders adding shares than trimming in the latest quarter (1).
+
+Missing data removes that point from the total instead of counting as zero, so the denominator can be below the maximum.
+
+**Verdict bands**: 70%+ strong alignment, 45–70% mixed signals, below 45% weak alignment. Pillar colours: 75%+ of its points ✅, 50–75% ⚠️, below 50% ❌.
+"""
+
+def close_ticker(symbol):
+    if symbol in st.session_state.watchlist:
+        st.session_state.watchlist.remove(symbol)
+        save_watchlist(st.session_state.watchlist)
+
 
 # ── Session state init ──────────────────────────────────────────────────────
 if "watchlist" not in st.session_state:
@@ -258,6 +324,12 @@ with st.sidebar:
             st.session_state.watchlist = ["RKLB"]
             save_watchlist(st.session_state.watchlist)
             st.rerun()
+
+    st.markdown("---")
+    with st.expander("📖 Scoring logic"):
+        st.markdown(SCORING_GUIDE)
+    with st.expander("📚 Key terms"):
+        st.markdown("\n\n".join(f"**{term}**: {meaning}" for term, meaning in GLOSSARY.items()))
 
     st.markdown("---")
     st.caption("💾 Saved automatically • Data from Yahoo Finance")
@@ -831,6 +903,52 @@ def render_report(p):
     st.caption("Before acting: read the latest 10-K and 10-Q, test the concerns above against the filings, and check why insiders are buying or selling.")
 
 
+@st.cache_data(ttl=3600)
+def get_peer_multiple(symbol):
+    try:
+        info = yf.Ticker(symbol).info
+        ev_rev, growth = info.get("enterpriseToRevenue"), info.get("revenueGrowth")
+        if not ev_rev or ev_rev <= 0 or growth is None:
+            return None
+        return {"Ticker": symbol, "Name": str(info.get("shortName") or symbol),
+                "growth": float(growth), "ev_rev": float(ev_rev)}
+    except Exception:
+        return None
+
+
+def scenario_fair_value(revenue, cash, debt, shares, price, burn_annual, growth_pct, years,
+                        margin_pct, exit_mult, other_dil_pct, hurdle):
+    """Per-share value in `years`: exit EV on EBITDA plus leftover cash less debt, discounted, diluted."""
+    if not revenue or not shares:
+        return None
+    cash, debt = cash or 0, debt or 0
+    ev = exit_mult * revenue * (1 + growth_pct / 100) ** years * (margin_pct / 100)
+    cum_burn = burn_annual * years / 2
+    gap = max(0.0, cum_burn - cash)
+    new_shares = gap / price if price else 0.0
+    equity = ev + (cash - cum_burn + gap) - debt
+    pv = equity / (1 + hurdle) ** years * (1 - other_dil_pct / 100)
+    return pv / (shares + new_shares) if pv > 0 else None
+
+
+def implied_growth(price, revenue, cash, debt, shares, burn_annual, years, margin_pct, exit_mult, other_dil_pct, hurdle):
+    """Annual revenue growth (%) at which the scenario model equals the current price, or None if out of range."""
+    def fair(g):
+        v = scenario_fair_value(revenue, cash, debt, shares, price, burn_annual, g, years,
+                                margin_pct, exit_mult, other_dil_pct, hurdle)
+        return v if v is not None else 0.0
+    lo, hi = -50.0, 300.0
+    if fair(lo) > price or fair(hi) < price:
+        return None
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if fair(mid) < price:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
 # ── Per-stock analysis renderer ─────────────────────────────────────────────
 
 def show_stock_tab(ticker_sym):
@@ -949,6 +1067,11 @@ def show_stock_tab(ticker_sym):
     score_pct = (total_score / total_possible) * 100 if total_possible else 0
     pillar_pct = {c: (scores[c] / maxes[c] * 100 if maxes[c] else None) for c in PILLARS}
 
+    top_l, top_r = st.columns([5, 1], vertical_alignment="center")
+    top_l.caption(f"Analysis of {ticker_sym}. Closing a tab removes it from your watchlist (re-add it any time).")
+    top_r.button("✕ Close", key=f"close_{ticker_sym}", help=f"Close {ticker_sym} and remove it from the watchlist",
+                 on_click=close_ticker, args=(ticker_sym,), use_container_width=True)
+
     score_tone = "Strong alignment" if score_pct >= 70 else "Mixed signals" if score_pct >= 45 else "Weak alignment"
     st.markdown(
         f'<div class="hero">'
@@ -999,7 +1122,8 @@ def show_stock_tab(ticker_sym):
             score_color = "🔴"
             score_label = "Weak"
 
-        st.metric(f"{score_color} Framework Score", f"{total_score}/{total_possible}")
+        st.metric(f"{score_color} Framework Score", f"{total_score}/{total_possible}",
+                  help=GLOSSARY["Framework score"])
         st.progress(score_pct / 100)
         st.caption(f"{score_pct:.0f}% alignment ({score_label})")
 
@@ -1086,7 +1210,7 @@ def show_stock_tab(ticker_sym):
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             pe_val = format_number(pe) if not is_loss_making else "N/A"
-            st.metric("📊 Trailing P/E", pe_val)
+            st.metric("📊 Trailing P/E", pe_val, help=GLOSSARY["P/E"])
             if pe and pe > 0 and not is_loss_making:
                 st.caption("Low ✅" if pe < 20 else "Fair 🟡" if pe < 40 else "High ⚠️")
         with c2:
@@ -1094,12 +1218,12 @@ def show_stock_tab(ticker_sym):
             st.metric("📊 Forward P/E", fpe_val)
         with c3:
             peg_val = format_number(peg) if not is_loss_making else "N/A"
-            st.metric("📈 PEG Ratio", peg_val)
+            st.metric("📈 PEG Ratio", peg_val, help=GLOSSARY["PEG"])
             if peg and peg > 0 and not is_loss_making:
                 st.caption("Cheap ✅" if peg < 1 else "Fair 🟡" if peg < 1.5 else "Rich ⚠️")
         with c4:
             ps_val = format_number(ps)
-            st.metric("🏷️ P/S (TTM)", ps_val)
+            st.metric("🏷️ P/S (TTM)", ps_val, help=GLOSSARY["P/S"])
             if ps and ps > 0:
                 st.caption("Low ✅" if ps < 3 else "Fair 🟡" if ps < 6 else "High ⚠️")
 
@@ -1107,12 +1231,12 @@ def show_stock_tab(ticker_sym):
         c5, c6, c7, c8 = st.columns(4)
         with c5:
             ev_ebitda_val = format_number(ev_ebitda) if not is_loss_making else "N/A"
-            st.metric("🏢 EV/EBITDA", ev_ebitda_val)
+            st.metric("🏢 EV/EBITDA", ev_ebitda_val, help=GLOSSARY["EV/EBITDA"])
             if ev_ebitda and ev_ebitda > 0 and not is_loss_making:
                 st.caption("Cheap ✅" if ev_ebitda < 10 else "Fair 🟡" if ev_ebitda < 15 else "Rich ⚠️")
         with c6:
             ev_rev_val = format_number(ev_rev)
-            st.metric("🏢 EV/Revenue", ev_rev_val)
+            st.metric("🏢 EV/Revenue", ev_rev_val, help=GLOSSARY["EV/Sales"])
             if ev_rev and ev_rev > 0:
                 st.caption("Low ✅" if ev_rev < 2 else "Fair 🟡" if ev_rev < 4 else "High ⚠️")
         with c7:
@@ -1120,7 +1244,7 @@ def show_stock_tab(ticker_sym):
             st.metric("📚 P/B", pb_val)
         with c8:
             fcf_yield_val = format_number(fcf_yield, is_pct=True)
-            st.metric("💵 FCF Yield", fcf_yield_val)
+            st.metric("💵 FCF Yield", fcf_yield_val, help=GLOSSARY["FCF yield"])
             if fcf_yield and fcf_yield > 0:
                 st.caption("Strong ✅" if fcf_yield > 0.08 else "Good 🟢" if fcf_yield > 0.05 else "Low ⚠️")
 
@@ -1467,6 +1591,131 @@ def show_stock_tab(ticker_sym):
             else:
                 st.info("Revenue or share count data unavailable for scenario calculation.")
 
+        burn_annual = (total_cash / runway_months * 12) if (runway_months and total_cash) else 0.0
+
+        st.markdown("---")
+        st.subheader("🎲 Probability-Weighted Scenarios")
+        st.caption(
+            "Bear, base and bull cases built from the assumptions above: bear halves growth and cuts margin, "
+            "multiple and dilution relief; bull lifts them. Set the weights to your own odds."
+        )
+        cases = [
+            ("Bear", sc_rev_growth * 0.5, max(3, sc_target_margin * 0.6), max(6, sc_exit_ev_ebitda * 0.7), min(80, sc_dilution + 15)),
+            ("Base", sc_rev_growth, sc_target_margin, sc_exit_ev_ebitda, sc_dilution),
+            ("Bull", sc_rev_growth * 1.5, min(45, sc_target_margin * 1.25), sc_exit_ev_ebitda * 1.2, max(0, sc_dilution - 5)),
+        ]
+        pw1, pw2, pw3 = st.columns(3)
+        weights = [
+            pw1.number_input("Bear weight (%)", 0, 100, 25, key=f"pw_bear_{ticker_sym}"),
+            pw2.number_input("Base weight (%)", 0, 100, 50, key=f"pw_base_{ticker_sym}"),
+            pw3.number_input("Bull weight (%)", 0, 100, 25, key=f"pw_bull_{ticker_sym}"),
+        ]
+        rows, vals, wts = [], [], []
+        for (case, g_c, m_c, x_c, d_c), w in zip(cases, weights):
+            fv = scenario_fair_value(revenue, total_cash, total_debt, shares_out, price, burn_annual,
+                                     g_c, sc_years, m_c, x_c, d_c, hurdle_rate)
+            rows.append({
+                "Scenario": case,
+                "Revenue growth": f"{g_c:.0f}%",
+                "EBITDA margin": f"{m_c:.0f}%",
+                "Exit EV/EBITDA": f"{x_c:.1f}×",
+                "Extra dilution": f"{d_c:.0f}%",
+                "Weight": f"{w}%",
+                "Fair value": f"${fv:.2f}" if fv else "N/A",
+                "Upside": f"{(fv / price - 1) * 100:+.0f}%" if fv and price else "N/A",
+            })
+            if fv and w > 0:
+                vals.append(fv)
+                wts.append(w)
+        if vals and price:
+            weighted_fv = sum(v * w for v, w in zip(vals, wts)) / sum(wts)
+            wa, wb = st.columns(2)
+            wa.metric("Probability-weighted fair value", f"${weighted_fv:.2f}")
+            wb.metric("Weighted upside", f"{(weighted_fv / price - 1) * 100:+.0f}%")
+        else:
+            st.info("Scenario values unavailable: needs revenue, share count and a price.")
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.subheader("🔁 Reverse DCF: What Growth Is Priced In?")
+        st.caption(
+            "Solves for the annual revenue growth at which the scenario model equals today's price, "
+            "holding the margin, exit multiple, dilution and discount rate above."
+        )
+        implied = implied_growth(price, revenue, total_cash, total_debt, shares_out, burn_annual,
+                                 sc_years, sc_target_margin, sc_exit_ev_ebitda, sc_dilution, hurdle_rate) \
+            if price and revenue and shares_out else None
+        ra, rb = st.columns(2)
+        ra.metric("Growth priced in", f"{implied:.0f}%/yr" if implied is not None else "Out of range")
+        rb.metric("Your assumed growth", f"{sc_rev_growth:.0f}%/yr")
+        if implied is None:
+            st.info("The price is not reachable between −50% and +300% growth at these assumptions.")
+        elif implied > sc_rev_growth:
+            st.warning(f"The price already assumes about {implied:.0f}%/yr growth, more than your {sc_rev_growth}% assumption. Your view needs to beat the market.")
+        else:
+            st.success(f"The price assumes about {implied:.0f}%/yr growth, below your {sc_rev_growth}% assumption. The market is less optimistic than you.")
+
+        st.markdown("---")
+        st.subheader("📏 Peer Growth Regression (EV/Sales vs Revenue Growth)")
+        st.caption(
+            "Enter 3–8 peers in the same industry. Fits EV/Sales against revenue growth across the peers, "
+            "then reads the multiple this company's growth would earn on that line."
+        )
+        peer_raw = st.text_input(
+            "Peer tickers (comma-separated)", placeholder="e.g. PL, BKSY, SPIR, ASTS", key=f"peers_{ticker_sym}"
+        )
+        peer_syms = list(dict.fromkeys(
+            p.strip().upper() for p in peer_raw.split(",") if p.strip() and p.strip().upper() != ticker_sym
+        ))[:8]
+        if peer_syms:
+            with st.spinner("Loading peers…"):
+                peer_rows = [r for r in (get_peer_multiple(p) for p in peer_syms) if r]
+            if peer_rows:
+                st.dataframe(
+                    pd.DataFrame([{"Ticker": r["Ticker"], "Name": r["Name"],
+                                   "Revenue growth": r["growth"] * 100, "EV/Sales": r["ev_rev"]} for r in peer_rows]),
+                    use_container_width=True, hide_index=True,
+                    column_config={
+                        "Revenue growth": st.column_config.NumberColumn(format="%.1f%%"),
+                        "EV/Sales": st.column_config.NumberColumn(format="%.2f×"),
+                    },
+                )
+            x = np.array([r["growth"] * 100 for r in peer_rows])
+            y = np.array([r["ev_rev"] for r in peer_rows])
+            if len(peer_rows) < 3:
+                st.info(f"Need at least 3 peers with growth and EV/Sales data; got {len(peer_rows)}.")
+            elif np.ptp(x) == 0 or rev_growth is None or not revenue or not shares_out:
+                st.info("Cannot fit a line: peer growth rates are identical, or this company's growth or revenue is missing.")
+            else:
+                slope, intercept = np.polyfit(x, y, 1)
+                r2 = float(np.corrcoef(x, y)[0, 1] ** 2)
+                pred = intercept + slope * rev_growth * 100
+                if pred <= 0:
+                    st.info("The fitted line gives a non-positive multiple at this company's growth rate.")
+                else:
+                    fair_ps = (pred * revenue - net_debt) / shares_out
+                    pa, pb, pc, pd_ = st.columns(4)
+                    pa.metric("Peer-implied EV/Sales", f"{pred:.1f}×")
+                    pb.metric("Current EV/Sales", f"{ev_rev:.1f}×" if ev_rev else "N/A")
+                    pc.metric("Regression fair value", f"${fair_ps:.2f}" if fair_ps > 0 else "N/A")
+                    pd_.metric("R² (fit quality)", f"{r2:.2f}")
+                    if r2 < 0.3:
+                        st.caption("Low R²: growth explains little of the peer multiples, so treat this fit as weak.")
+                    xs = np.linspace(x.min(), x.max(), 20)
+                    fig_peer = go.Figure()
+                    fig_peer.add_trace(go.Scatter(x=x, y=y, mode="markers+text", text=[r["Ticker"] for r in peer_rows],
+                                                  textposition="top center", name="Peers"))
+                    fig_peer.add_trace(go.Scatter(x=xs, y=intercept + slope * xs, mode="lines", name="Fit",
+                                                  line=dict(dash="dash")))
+                    fig_peer.add_trace(go.Scatter(x=[rev_growth * 100], y=[ev_rev] if ev_rev else [pred],
+                                                  mode="markers+text", text=[ticker_sym], textposition="top center",
+                                                  marker=dict(size=14, color="#FF9100"), name=ticker_sym))
+                    fig_peer.update_layout(
+                        xaxis_title="Revenue growth (%)", yaxis_title="EV/Sales (×)",
+                        height=340, margin=dict(l=20, r=20, t=20, b=20),
+                    )
+                    st.plotly_chart(fig_peer, use_container_width=True)
+
     with dtab2:
         st.subheader("Quality & Profitability")
         c1, c2, c3, c4 = st.columns(4)
@@ -1692,7 +1941,7 @@ def show_stock_tab(ticker_sym):
             st.write(rev_per_share_status)
             st.caption(rev_per_share_str)
         with k8:
-            st.metric("⏱️ Cash Runway", runway_str_val)
+            st.metric("⏱️ Cash Runway", runway_str_val, help=GLOSSARY["Cash runway"])
             st.caption(runway_status_val)
 
         st.markdown("---")
@@ -1936,10 +2185,17 @@ def show_stock_tab(ticker_sym):
 
 # ── Main area ───────────────────────────────────────────────────────────────
 
-st.title("📈 Stock Valuation Framework")
+n_stocks = len(st.session_state.watchlist)
+pillar_chips = "".join(f"<span>{html.escape(p)}</span>" for p in PILLARS)
 st.markdown(
-    "Score stocks on the principles from *100 Baggers*, Ian Cassel, Peter Lynch, Phil Fisher and Greenblatt: "
-    "**Quality · Management · Growth · Valuation · Risk**"
+    f'<div class="app-banner">'
+    f'<div class="app-kicker">QUANTITATIVE SCREEN · {n_stocks} STOCK{"S" if n_stocks != 1 else ""} IN WATCHLIST</div>'
+    f'<div class="app-title">📈 Stock Valuation Framework</div>'
+    f'<div class="app-sub">Score stocks on the principles from <i>100 Baggers</i>, Ian Cassel, Peter Lynch, '
+    f'Phil Fisher and Greenblatt.</div>'
+    f'<div class="app-chips">{pillar_chips}</div>'
+    f'</div>',
+    unsafe_allow_html=True,
 )
 
 with st.expander("How to use this app"):
@@ -1947,13 +2203,17 @@ with st.expander("How to use this app"):
         "1. Add tickers in the sidebar.\n"
         "2. Pick a stock's tab and read its framework score (70%+ = worth researching).\n"
         "3. Review the valuation, growth and balance-sheet detail.\n"
-        "4. Cross-check anything promising against the 10-K and 10-Q."
+        "4. Cross-check anything promising against the 10-K and 10-Q.\n\n"
+        "Hover the ⓘ icons for metric definitions, or open the glossary in the sidebar."
     )
 
-st.markdown("---")
-
 if not st.session_state.watchlist:
-    st.info("👈 Add a ticker in the sidebar to get started.")
+    st.markdown(
+        '<div class="empty-state"><div class="big">📭</div>'
+        '<div class="head">Your watchlist is empty</div>'
+        'Add a ticker in the sidebar to see its framework score, valuation models and report.</div>',
+        unsafe_allow_html=True,
+    )
 else:
     # One tab per stock — clicking the tab loads that stock's full analysis
     tab_labels = [f"{t}" for t in st.session_state.watchlist]

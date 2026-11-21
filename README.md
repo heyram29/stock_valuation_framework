@@ -15,6 +15,11 @@ Interactive Streamlit app that scores a stock against the common principles from
 
 Each stock tab starts with a short summary report, which can be downloaded as Markdown.
 
+## Valuation models for loss-making growers
+- Probability-weighted scenarios: bear, base and bull cases, weighted by your odds.
+- Reverse DCF: the revenue growth the current price already assumes.
+- Peer growth regression: EV/Sales fitted against revenue growth across peers you enter.
+
 ## How to run
 
 ```bash
