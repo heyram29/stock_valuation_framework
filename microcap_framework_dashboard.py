@@ -7,10 +7,11 @@ import plotly.graph_objects as go
 from io import StringIO
 from datetime import datetime
 import json
+import html
 from pathlib import Path
 
 st.set_page_config(
-    page_title="Micro/Small-Cap Framework Dashboard",
+    page_title="Stock Valuation Framework",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -89,6 +90,69 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+
+    /* Tabs: underline the active tab instead of boxing it */
+    .stTabs [data-baseweb="tab-list"] button {
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.1rem;
+        margin-right: 0.25rem;
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        height: 3px;
+        border-radius: 3px;
+    }
+
+    /* Sidebar brand block */
+    .brand {
+        padding: 0.25rem 0 0.75rem 0;
+    }
+    .brand-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #1a237e;
+        line-height: 1.2;
+    }
+    .brand-sub {
+        font-size: 0.85rem;
+        color: #5f6368;
+    }
+
+    /* Hero card at the top of each stock tab */
+    .hero {
+        background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
+        color: #ffffff;
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 14px rgba(26,35,126,0.25);
+    }
+    .hero-ticker {
+        display: inline-block;
+        background: rgba(255,255,255,0.18);
+        border-radius: 6px;
+        padding: 0.1rem 0.55rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+    .hero-name {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0.4rem 0 0.2rem 0;
+    }
+    .hero-meta {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .hero-pill {
+        display: inline-block;
+        background: #ffffff;
+        color: #1a237e;
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        font-weight: 700;
+        margin-top: 0.6rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,47 +188,54 @@ if "watchlist" not in st.session_state:
 
 # ── Sidebar: watchlist manager ──────────────────────────────────────────────
 with st.sidebar:
-    st.title("📋 Watchlist")
-    st.caption("Add tickers to analyze. Each gets its own tab.")
-
-    st.markdown("---")
-
-    # Add new ticker
-    new_ticker_input = st.text_input(
-        "Add Ticker",
-        placeholder="e.g. RKLB, NBIS, AAPL",
-        label_visibility="collapsed",
+    st.markdown(
+        '<div class="brand"><div class="brand-title">📈 Stock Valuation<br>Framework</div>'
+        '<div class="brand-sub">Watchlist &amp; quick analysis</div></div>',
+        unsafe_allow_html=True,
     )
-    if st.button("➕ Add to Watchlist", type="primary", use_container_width=True):
+
+    with st.form("add_ticker", clear_on_submit=True, border=False):
+        new_ticker_input = st.text_input(
+            "Add a ticker",
+            placeholder="e.g. RKLB, NBIS, AAPL",
+        )
+        submitted = st.form_submit_button("➕ Add to watchlist", type="primary", use_container_width=True)
+    if submitted:
         t = new_ticker_input.upper().strip()
-        if t and t not in st.session_state.watchlist:
+        if not t:
+            st.warning("Enter a ticker symbol first.")
+        elif t in st.session_state.watchlist:
+            st.warning(f"{t} is already in your watchlist.")
+        else:
             st.session_state.watchlist.append(t)
             save_watchlist(st.session_state.watchlist)
             st.rerun()
-        elif t in st.session_state.watchlist:
-            st.warning(f"{t} is already in your watchlist.")
 
     st.markdown("---")
 
-    # Current watchlist with remove buttons
+    count = len(st.session_state.watchlist)
+    head_l, head_r = st.columns([2, 1])
+    head_l.markdown("**Your watchlist**")
+    head_r.markdown(f"<div style='text-align:right;color:#5f6368'>{count} stock{'s' if count != 1 else ''}</div>", unsafe_allow_html=True)
+
     if st.session_state.watchlist:
-        st.markdown("**Your stocks:**")
         for t in list(st.session_state.watchlist):
-            col_name, col_btn = st.columns([3, 1])
-            col_name.markdown(f"**{t}**")
-            if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
-                st.session_state.watchlist.remove(t)
-                save_watchlist(st.session_state.watchlist)
-                st.rerun()
+            with st.container(border=True):
+                col_name, col_btn = st.columns([3, 1], vertical_alignment="center")
+                col_name.markdown(f"**{html.escape(t)}**")
+                if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
+                    st.session_state.watchlist.remove(t)
+                    save_watchlist(st.session_state.watchlist)
+                    st.rerun()
     else:
-        st.info("No stocks in watchlist.")
-        if st.button("🔄 Reset to Default (RKLB)", use_container_width=True):
+        st.info("Your watchlist is empty.")
+        if st.button("🔄 Reset to default (RKLB)", use_container_width=True):
             st.session_state.watchlist = ["RKLB"]
             save_watchlist(st.session_state.watchlist)
             st.rerun()
 
     st.markdown("---")
-    st.caption("💾 Watchlist auto-saved locally • Data via Yahoo Finance")
+    st.caption("💾 Saved automatically • Data from Yahoo Finance")
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -580,6 +651,17 @@ def show_stock_tab(ticker_sym):
     total_score = sum(scores.values())
     score_pct = (total_score / total_possible) * 100 if total_possible else 0
     pillar_pct = {c: (scores[c] / maxes[c] * 100 if maxes[c] else None) for c in PILLARS}
+
+    score_tone = "Strong alignment" if score_pct >= 70 else "Mixed signals" if score_pct >= 45 else "Weak alignment"
+    st.markdown(
+        f'<div class="hero">'
+        f'<span class="hero-ticker">{html.escape(ticker_sym)}</span>'
+        f'<div class="hero-name">{html.escape(str(name))}</div>'
+        f'<div class="hero-meta">{html.escape(str(sector))} • {html.escape(str(industry))} • {html.escape(size_label)}</div>'
+        f'<div class="hero-pill">{total_score}/{total_possible} · {score_pct:.0f}% · {score_tone}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
     # ── Header section ──
     header_col1, header_col2 = st.columns([2, 1])
@@ -1512,23 +1594,19 @@ def show_stock_tab(ticker_sym):
 
 # ── Main area ───────────────────────────────────────────────────────────────
 
-col_title1, col_title2 = st.columns([3, 1])
-with col_title1:
-    st.title("📈 Micro & Small-Cap Framework Dashboard")
-    st.markdown(
-        "**Apply proven investment principles** from *100 Baggers*, Ian Cassel, Peter Lynch, "
-        "Phil Fisher & Greenblatt to find multi-bagger opportunities.\n\n"
-        "🎯 **Framework Pillars:** Quality • Management Alignment • Growth • Valuation • Risk"
-    )
+st.title("📈 Stock Valuation Framework")
+st.markdown(
+    "Score stocks on the principles from *100 Baggers*, Ian Cassel, Peter Lynch, Phil Fisher and Greenblatt: "
+    "**Quality · Management · Growth · Valuation · Risk**"
+)
 
-with col_title2:
-    st.markdown("""
-    ### How to Use
-    1. Add tickers in sidebar
-    2. Review scores (70%+ = research)
-    3. Dive into detailed metrics
-    4. Cross-check with 10-K/10-Q
-    """)
+with st.expander("How to use this app"):
+    st.markdown(
+        "1. Add tickers in the sidebar.\n"
+        "2. Pick a stock's tab and read its framework score (70%+ = worth researching).\n"
+        "3. Review the valuation, growth and balance-sheet detail.\n"
+        "4. Cross-check anything promising against the 10-K and 10-Q."
+    )
 
 st.markdown("---")
 
@@ -1536,7 +1614,7 @@ if not st.session_state.watchlist:
     st.info("👈 Add a ticker in the sidebar to get started.")
 else:
     # One tab per stock — clicking the tab loads that stock's full analysis
-    tab_labels = [f"📊 {t}" for t in st.session_state.watchlist]
+    tab_labels = [f"{t}" for t in st.session_state.watchlist]
     tabs = st.tabs(tab_labels)
     for tab, ticker_sym in zip(tabs, st.session_state.watchlist):
         with tab:

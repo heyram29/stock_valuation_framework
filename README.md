@@ -1,4 +1,4 @@
-# Micro / Small-Cap Framework Dashboard
+# Stock Valuation Framework
 
 Interactive Streamlit app that scores a stock against the common principles from *100 Baggers*, Ian Cassel, Peter Lynch, Phil Fisher, Greenblatt, Wanger and related works.
 
