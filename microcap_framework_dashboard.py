@@ -2228,14 +2228,7 @@ def add_ticker_from_form():
 
 def render_watchlist_panel():
     wl = st.session_state.watchlist
-    with st.container(border=True):
-        head_l, head_r = st.columns([3, 1], vertical_alignment="center")
-        head_l.markdown("#### 📋 Watchlist")
-        head_r.markdown(
-            f"<div style='text-align:right;color:#64748b;font-weight:600'>"
-            f"{len(wl)} stock{'s' if len(wl) != 1 else ''}</div>",
-            unsafe_allow_html=True,
-        )
+    with st.expander(f"📋 Watchlist · {len(wl)} stock{'s' if len(wl) != 1 else ''}", expanded=False):
         add_l, add_r = st.columns([4, 1], vertical_alignment="bottom")
         add_l.text_input("Add a ticker", placeholder="e.g. RKLB, NBIS, AAPL", key="add_ticker_input",
                          on_change=add_ticker_from_form)
