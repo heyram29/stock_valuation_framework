@@ -118,6 +118,32 @@ st.markdown("""
     [data-testid="stSidebar"] .stButton > button { padding: 0.15rem 0.45rem; font-size: 0.85rem; min-height: 0; }
     [data-testid="stSidebar"] .stButton > button:hover { color: var(--bad); border-color: var(--bad); }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { margin-bottom: 0; }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.3rem 0.45rem;
+        margin-right: 14px;
+        transition: background .15s ease, border-color .15s ease;
+    }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"]:hover {
+        background: #eef4ff;
+        border-color: #c7d7fe;
+    }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stMarkdownContainer"] p {
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+    }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="column"]:last-child {
+        display: flex;
+        justify-content: flex-end;
+    }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button {
+        min-width: 2rem;
+        width: auto;
+    }
 
     /* App banner */
     .app-banner {
@@ -311,13 +337,14 @@ with st.sidebar:
             st.rerun()
 
     if st.session_state.watchlist:
-        for t in list(st.session_state.watchlist):
-            col_name, col_btn = st.columns([4, 1], vertical_alignment="center")
-            col_name.markdown(f"**{html.escape(t)}**")
-            if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
-                st.session_state.watchlist.remove(t)
-                save_watchlist(st.session_state.watchlist)
-                st.rerun()
+        with st.container(height=300, border=False):
+            for t in list(st.session_state.watchlist):
+                col_name, col_btn = st.columns([4, 1], vertical_alignment="center")
+                col_name.markdown(f"**{html.escape(t)}**")
+                if col_btn.button("✕", key=f"remove_{t}", help=f"Remove {t}"):
+                    st.session_state.watchlist.remove(t)
+                    save_watchlist(st.session_state.watchlist)
+                    st.rerun()
     else:
         st.info("Your watchlist is empty.")
         if st.button("🔄 Reset to default (RKLB)", use_container_width=True):
