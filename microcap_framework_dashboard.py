@@ -302,6 +302,70 @@ def get_shares_history(symbol):
         return None
 
 
+@st.cache_data(ttl=3600)
+def get_flow_data(symbol):
+    """Insider open-market trades (trailing 12 months) and top-holder share changes, as plain data."""
+    out = {"ins_ok": False, "inst_ok": False, "buy_n": 0, "sell_n": 0, "buy_val": 0.0, "sell_val": 0.0,
+           "trades": [], "inst_up": 0, "inst_down": 0, "holders": []}
+    try:
+        t = yf.Ticker(symbol)
+    except Exception:
+        return out
+
+    try:
+        tx = t.insider_transactions
+        if tx is not None:
+            tx = tx.copy()
+            out["ins_ok"] = True
+            dates = pd.to_datetime(tx["Start Date"], errors="coerce")
+            if getattr(dates.dt, "tz", None) is not None:
+                dates = dates.dt.tz_localize(None)
+            tx["Start Date"] = dates
+            tx = tx[tx["Start Date"] >= pd.Timestamp.now().normalize() - pd.DateOffset(months=12)]
+            txt = (tx.get("Transaction", pd.Series("", index=tx.index)).fillna("").astype(str) + " "
+                   + tx.get("Text", pd.Series("", index=tx.index)).fillna("").astype(str)).str.lower()
+            is_tax = txt.str.contains("to cover|withh", regex=True)
+            is_buy = txt.str.contains("purchase|buy", regex=True) & ~is_tax
+            is_sell = txt.str.contains("sale|sell", regex=True) & ~is_tax & ~is_buy
+            value = pd.to_numeric(tx.get("Value"), errors="coerce").fillna(0).abs()
+            out["buy_n"], out["sell_n"] = int(is_buy.sum()), int(is_sell.sum())
+            out["buy_val"], out["sell_val"] = float(value[is_buy].sum()), float(value[is_sell].sum())
+            shown = tx[is_buy | is_sell].sort_values("Start Date", ascending=False).head(50)
+            out["trades"] = [
+                {
+                    "Date": r["Start Date"].strftime("%Y-%m-%d"),
+                    "Insider": str(r.get("Insider", "")),
+                    "Position": str(r.get("Position", "")),
+                    "Type": "Buy" if is_buy.loc[i] else "Sale",
+                    "Shares": float(pd.to_numeric(r.get("Shares"), errors="coerce")) if pd.notnull(r.get("Shares")) else 0.0,
+                    "Value": float(pd.to_numeric(r.get("Value"), errors="coerce")) if pd.notnull(r.get("Value")) else 0.0,
+                }
+                for i, r in shown.iterrows()
+            ]
+    except Exception:
+        out["ins_ok"] = False
+
+    try:
+        h = t.institutional_holders
+        if h is not None and not h.empty:
+            out["inst_ok"] = True
+            pc = pd.to_numeric(h["pctChange"], errors="coerce").dropna()
+            out["inst_up"], out["inst_down"] = int((pc > 0).sum()), int((pc < 0).sum())
+            out["holders"] = [
+                {
+                    "Holder": str(r["Holder"]),
+                    "Reported": pd.Timestamp(r["Date Reported"]).strftime("%Y-%m-%d") if pd.notnull(r["Date Reported"]) else "",
+                    "% Held": float(r["pctHeld"]) * 100 if pd.notnull(r["pctHeld"]) else None,
+                    "Change in shares": float(r["pctChange"]) * 100 if pd.notnull(r["pctChange"]) else None,
+                }
+                for _, r in h.iterrows()
+            ]
+    except Exception:
+        out["inst_ok"] = False
+
+    return out
+
+
 def parse_stock_data(raw):
     """Reconstruct DataFrames from cached JSON strings."""
     if raw is None:
@@ -324,9 +388,9 @@ def parse_stock_data(raw):
     )
 
 
-PILLARS = ["Quality", "Management", "Growth", "Valuation", "Risk"]
+PILLARS = ["Quality", "Management", "Growth", "Valuation", "Risk", "Smart Money"]
 # Quality, ownership and growth carry the most weight (Fisher/Cassel/Mayer); valuation is a discipline check
-PILLAR_MAX = {"Quality": 4, "Management": 3, "Growth": 3, "Valuation": 3, "Risk": 3}
+PILLAR_MAX = {"Quality": 4, "Management": 3, "Growth": 3, "Valuation": 3, "Risk": 3, "Smart Money": 2}
 
 
 def compute_roic(financials, balance, tax_default=0.21):
@@ -363,7 +427,7 @@ def compute_roic(financials, balance, tax_default=0.21):
         return None
 
 
-def compute_scores(info, runway_months=None, dilution_pct=None, roic=None):
+def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=None):
     """Score a stock on the five pillars. Returns (scores, explanations, maxes); maxes shrink when data is missing."""
     scores, explanations = {}, {}
     maxes = dict(PILLAR_MAX)
@@ -533,6 +597,32 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None):
     scores["Risk"] = max(0, min(r, PILLAR_MAX["Risk"]))
     explanations["Risk"] = "; ".join(rn)
 
+    # 6. Smart Money — 1 pt for net insider buying (12m), 1 pt for top holders adding shares (latest quarter)
+    flow = flow or {}
+    sm, smn = 0, []
+    if flow.get("ins_ok"):
+        bv, sv, bn, sn = flow["buy_val"], flow["sell_val"], flow["buy_n"], flow["sell_n"]
+        net_buying = (bv > sv) if (bv + sv) > 0 else (bn > sn)
+        if bn and net_buying:
+            sm += 1; smn.append(f"Net insider buying ({bn} buys, {sn} sales, 12m)")
+        elif bn or sn:
+            smn.append(f"Net insider selling ({bn} buys, {sn} sales, 12m)")
+        else:
+            smn.append("No open-market insider trades (12m)")
+    else:
+        maxes["Smart Money"] -= 1
+    if flow.get("inst_ok") and (flow["inst_up"] + flow["inst_down"]) > 0:
+        if flow["inst_up"] > flow["inst_down"]:
+            sm += 1; smn.append(f"Top holders adding ({flow['inst_up']} up / {flow['inst_down']} down)")
+        else:
+            smn.append(f"Top holders trimming ({flow['inst_up']} up / {flow['inst_down']} down)")
+    elif not flow.get("inst_ok"):
+        maxes["Smart Money"] -= 1
+    if maxes["Smart Money"] == 0:
+        smn = ["Insider and holder flow data unavailable — excluded from score"]
+    scores["Smart Money"] = min(sm, PILLAR_MAX["Smart Money"])
+    explanations["Smart Money"] = "; ".join(smn)
+
     return scores, explanations, maxes
 
 
@@ -646,7 +736,8 @@ def show_stock_tab(ticker_sym):
         else:                       size_label = "Large/Mega-cap"
 
     roic = compute_roic(financials, balance)
-    scores, explanations, maxes = compute_scores(info, runway_months, dilution_pct, roic)
+    flow = get_flow_data(ticker_sym)
+    scores, explanations, maxes = compute_scores(info, runway_months, dilution_pct, roic, flow)
     total_possible = sum(maxes.values())
     total_score = sum(scores.values())
     score_pct = (total_score / total_possible) * 100 if total_possible else 0
@@ -740,7 +831,7 @@ def show_stock_tab(ticker_sym):
 
     # ── Framework checklist details ──
     st.subheader("📋 Detailed Score Explanations")
-    cols = st.columns(5)
+    cols = st.columns(len(PILLARS))
     for i, cat in enumerate(PILLARS):
         with cols[i]:
             pct = pillar_pct[cat]
@@ -1555,6 +1646,38 @@ def show_stock_tab(ticker_sym):
         st.metric("Shares Outstanding", format_number(shares_out))
         st.metric("Float", format_number(float_shares))
         st.info("**Framework note**: High insider ownership is a top signal (Cassel, Fisher).")
+
+        st.markdown("---")
+        st.subheader("Smart Money: Insider Activity (last 12 months)")
+        if flow["ins_ok"]:
+            i1, i2, i3 = st.columns(3)
+            i1.metric("Insider buys", f"{flow['buy_n']}  ·  {format_number(flow['buy_val'], is_currency=True)}")
+            i2.metric("Insider sales", f"{flow['sell_n']}  ·  {format_number(flow['sell_val'], is_currency=True)}")
+            i3.metric("Net insider $", format_number(flow["buy_val"] - flow["sell_val"], is_currency=True))
+            if flow["trades"]:
+                st.dataframe(pd.DataFrame(flow["trades"]), use_container_width=True, hide_index=True)
+            else:
+                st.caption("No open-market insider buys or sales in the last 12 months. Gifts, grants and tax withholding are not counted.")
+        else:
+            st.caption("Insider transaction data not available for this ticker.")
+
+        st.subheader("Smart Money: Institutional Holders (top 10)")
+        if flow["inst_ok"]:
+            st.metric("Holders adding vs trimming", f"{flow['inst_up']} up  /  {flow['inst_down']} down")
+            st.dataframe(
+                pd.DataFrame(flow["holders"]),
+                use_container_width=True, hide_index=True,
+                column_config={
+                    "% Held": st.column_config.NumberColumn(format="%.2f%%"),
+                    "Change in shares": st.column_config.NumberColumn(format="%+.2f%%"),
+                },
+            )
+            st.caption(
+                "Yahoo Finance reports only each holder's most recent change, not four quarters of history, "
+                "so this reflects the latest reporting quarter."
+            )
+        else:
+            st.caption("Institutional holder data not available for this ticker.")
 
     # ── Summary ──
     st.markdown("---")

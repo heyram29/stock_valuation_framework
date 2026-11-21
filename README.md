@@ -2,12 +2,13 @@
 
 Interactive Streamlit app that scores a stock against the common principles from *100 Baggers*, Ian Cassel, Peter Lynch, Phil Fisher, Greenblatt, Wanger and related works.
 
-## Framework pillars scored (16 points)
+## Framework pillars scored (18 points)
 - Quality, 4 pts (ROIC with ROE fallback, operating margin, gross margin / pricing power)
 - Management alignment, 3 pts (insider ownership; excluded from the total if the data is missing)
 - Growth runway, 3 pts (revenue/earnings growth)
 - Valuation discipline, 3 pts (PEG, EV/sales, EV/EBITDA, FCF yield; loss-makers use EV/sales vs growth, runway, net cash)
 - Risk / balance sheet, 3 pts (debt/equity, net cash, share dilution penalty)
+- Smart money, 2 pts (1 pt for net insider buying over the last 12 months; 1 pt for more top-10 institutional holders adding shares than trimming in the latest quarter)
 
 ## How to run
 
