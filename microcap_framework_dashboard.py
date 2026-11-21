@@ -214,12 +214,89 @@ st.markdown("""
         margin-top: 0.6rem;
     }
 
+    /* Metric values wrap instead of truncating */
+    [data-testid="stMetricValue"] > div {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        line-height: 1.2;
+    }
+
+    /* Report key facts: wrapping cards */
+    .fact-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.5rem 0 1rem 0; }
+    .fact {
+        flex: 1 1 170px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.7rem 0.9rem;
+        box-shadow: var(--shadow);
+        min-width: 0;
+    }
+    .fact-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .fact-value { font-size: 1.25rem; font-weight: 700; color: var(--ink); line-height: 1.25; margin-top: 0.2rem; overflow-wrap: anywhere; }
+    .fact-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+
     /* Summary report */
     .rpt-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
     .rpt-badge { display: inline-block; color: #ffffff; border-radius: 999px; padding: 0.3rem 0.9rem; font-weight: 700; font-size: 0.9rem; }
     .rpt-sub { color: var(--muted); font-size: 0.9rem; margin-top: 0.35rem; }
     .rpt-score { font-size: 2.2rem; font-weight: 800; color: var(--brand); line-height: 1; }
     .rpt-score span { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+
+    /* Market tabs: header, summary cards, tile grid */
+    .mk-head {
+        background: linear-gradient(135deg, #1a237e 0%, #2962FF 100%);
+        color: #ffffff;
+        border-radius: 16px;
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 0.9rem;
+        box-shadow: 0 8px 24px rgba(26,35,126,0.2);
+    }
+    .mk-kicker { font-size: 0.72rem; letter-spacing: 0.12em; font-weight: 700; opacity: 0.8; }
+    .mk-title { font-size: 1.5rem; font-weight: 750; margin: 0.15rem 0; }
+    .mk-sub { font-size: 0.9rem; opacity: 0.92; }
+    .sum-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 0.9rem; }
+    .sum-card {
+        flex: 1 1 200px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.8rem 1rem;
+        box-shadow: var(--shadow);
+    }
+    .sum-h { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .sum-big { font-size: 1.6rem; font-weight: 750; color: var(--ink); margin-top: 0.2rem; }
+    .sum-small { font-size: 0.8rem; color: var(--muted); }
+    .sum-chips { margin-top: 0.45rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
+    .tile {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.8rem 0.9rem;
+        box-shadow: var(--shadow);
+    }
+    .tile-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+    .tile-name { font-weight: 700; color: var(--ink); font-size: 0.95rem; line-height: 1.25; }
+    .tile-sym { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .tile-price { font-weight: 700; color: var(--ink); font-size: 1rem; white-space: nowrap; }
+    .tile-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+    .tile-ret { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+    .chip-bull, .chip-bear, .chip-ob, .chip-os, .chip-mid, .chip-na {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 0.12rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+    .chip-bull { background: #dcfce7; color: #14532d; }
+    .chip-bear { background: #fee2e2; color: #7f1d1d; }
+    .chip-ob { background: #ffedd5; color: #7c2d12; }
+    .chip-os { background: #dbeafe; color: #1e3a8a; }
+    .chip-mid { background: #f1f5f9; color: #475569; }
+    .chip-na { background: #f8fafc; color: #94a3b8; border: 1px dashed #cbd5e1; }
 
     /* Tables */
     [data-testid="stDataFrame"] { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
@@ -281,6 +358,7 @@ GLOSSARY = {
     "Peer regression": "Fits EV/Sales against revenue growth for peer companies, then reads off the multiple this company's growth would earn.",
     "R²": "Share of the variation in peer multiples that growth explains. Closer to 1 is a tighter fit; below 0.3 is weak.",
     "Discount rate": "Required annual return used to bring future value back to today. Higher means more conservative.",
+    "Trend filter 50/200": "Bullish when the 50-day average is above the 200-day average. Backtest on 21 stocks: it cut the worst drawdown in 90% of them, but its risk-adjusted return was about the same as buy-and-hold. Use it to manage risk, not as a buy signal.",
 }
 
 SCORING_GUIDE = """
@@ -830,17 +908,35 @@ def compute_scores(info, runway_months=None, dilution_pct=None, roic=None, flow=
     return scores, explanations, maxes
 
 
-def build_report_parts(ticker, name, sector, price, mcap, scores, maxes, explanations, score_pct, is_loss_making, runway_months, dilution_pct, flow):
+@st.cache_data(ttl=3600)
+def get_trend_filter(symbol):
+    """50-day vs 200-day average: Bullish when the 50-day is above the 200-day, with the date of the last change."""
+    try:
+        close = yf.Ticker(symbol).history(period="5y", auto_adjust=True)["Close"].dropna()
+        sma50, sma200 = close.rolling(50).mean(), close.rolling(200).mean()
+        cond = (sma50 > sma200).where(sma200.notna()).dropna().astype(bool)
+        if cond.empty:
+            return None
+        flips = cond.index[cond.ne(cond.shift(1)) & cond.shift(1).notna()]
+        since = flips[-1] if len(flips) else cond.index[0]
+        return {"state": "Bullish" if cond.iloc[-1] else "Bearish", "since": since.strftime("%Y-%m-%d")}
+    except Exception:
+        return None
+
+
+def build_report_parts(ticker, name, sector, price, mcap, scores, maxes, explanations, score_pct, is_loss_making, runway_months, dilution_pct, flow, trend=None):
     """Structured summary of the scoring, built from the same numbers shown on screen."""
     total, possible = sum(scores.values()), sum(maxes.values())
     gaps = [c for c in PILLARS if not maxes[c]]
-    facts = [("Pillars scored", f"{len(PILLARS) - len(gaps)}/{len(PILLARS)}")]
+    facts = [("Pillars scored", f"{len(PILLARS) - len(gaps)}/{len(PILLARS)}", None)]
+    if trend:
+        facts.append(("Trend 50/200", trend["state"], f"Since {trend['since']}"))
     if runway_months is not None:
-        facts.append(("Cash runway", f"~{runway_months:.0f} mo"))
+        facts.append(("Cash runway", f"~{runway_months:.0f} mo", None))
     if dilution_pct is not None:
-        facts.append(("Share change, 3y", f"{dilution_pct:+.0f}%"))
+        facts.append(("Share change, 3y", f"{dilution_pct:+.0f}%", None))
     if flow.get("ins_ok"):
-        facts.append(("Insider trades, 12m", f"{flow['buy_n']} buys · {flow['sell_n']} sales"))
+        facts.append(("Insider buys / sales, 12m", f"{flow['buy_n']} / {flow['sell_n']}", None))
     return {
         "ticker": ticker,
         "name": str(name),
@@ -878,7 +974,7 @@ def report_markdown(p):
         lines.append("**Concerns**")
         lines += [f"- **{c}** {s}/{m}: {e}" for c, s, m, e in p["concerns"]]
         lines.append("")
-    lines.append("**Key facts:** " + "; ".join(f"{k}: {v}" for k, v in p["facts"] if k != "Pillars scored") + ".")
+    lines.append("**Key facts:** " + "; ".join(f"{k}: {v}" for k, v, _ in p["facts"] if k != "Pillars scored") + ".")
     lines.append("")
     if p["gaps"]:
         lines.append(f"**Not scored (missing data):** {', '.join(p['gaps'])}.")
@@ -905,8 +1001,19 @@ def render_report(p):
     subtitle = f"Market cap {p['market_cap']}" + (f" · Price ${p['price']:.2f}" if p["price"] else "")
     st.caption(md_safe(subtitle) + (" · Loss-making: valuation uses EV/sales vs growth and cash runway" if p["is_loss_making"] else ""))
 
-    for col, (label, value) in zip(st.columns(len(p["facts"])), p["facts"]):
-        col.metric(label, md_safe(value))
+    cards = "".join(
+        f'<div class="fact"><div class="fact-label">{html.escape(label)}</div>'
+        f'<div class="fact-value">{html.escape(value)}</div>'
+        + (f'<div class="fact-note">{html.escape(note)}</div>' if note else "")
+        + '</div>'
+        for label, value, note in p["facts"]
+    )
+    st.markdown(f'<div class="fact-row">{cards}</div>', unsafe_allow_html=True)
+    st.caption(
+        "**Trend 50/200:** Bullish when the 50-day average is above the 200-day average, Bearish when below. "
+        "It is a risk filter, not a buy signal: in a 21-stock backtest it reduced the worst drawdown in 19 cases, "
+        "but its risk-adjusted return matched buy-and-hold."
+    )
 
     left, right = st.columns(2)
     with left:
@@ -1111,7 +1218,8 @@ def show_stock_tab(ticker_sym):
     )
 
     report = build_report_parts(ticker_sym, name, sector, price, mcap, scores, maxes, explanations,
-                                score_pct, is_loss_making, runway_months, dilution_pct, flow)
+                                score_pct, is_loss_making, runway_months, dilution_pct, flow,
+                                trend=get_trend_filter(ticker_sym))
     with st.container(border=True):
         st.markdown("#### 📝 Summary report")
         render_report(report)
@@ -2210,6 +2318,945 @@ def show_stock_tab(ticker_sym):
     )
 
 
+# ── Macro regime (independent of any stock) ─────────────────────────────────
+
+MACRO_SYMBOLS = [
+    ("^VIX", "CBOE Volatility Index (VIX)", "Yahoo", "Fear gauge; elevated = adverse"),
+    ("^VIX3M", "CBOE 3-month volatility index", "Yahoo", "VIX term structure for fear gauge"),
+    ("^GSPC", "S&P 500 index", "Yahoo", "Market trend vs 200-day average"),
+    ("SPY", "S&P 500 ETF", "Yahoo", "Large-cap benchmark"),
+    ("RSP", "S&P 500 equal-weight ETF", "Yahoo", "Breadth: broad participation vs mega caps"),
+    ("^RUT", "Russell 2000 index", "Yahoo", "Small-cap benchmark"),
+    ("IWM", "Russell 2000 ETF", "Yahoo", "Small-cap proxy"),
+    ("HYG", "High-yield corporate bond ETF", "Yahoo", "Credit appetite (vs LQD)"),
+    ("LQD", "Investment-grade corporate bond ETF", "Yahoo", "Credit appetite (vs HYG)"),
+    ("TLT", "20+ year Treasury ETF", "Yahoo", "Long-duration rate moves (info)"),
+    ("XLY", "Consumer discretionary ETF", "Yahoo", "Growth-sensitive spending (vs XLP)"),
+    ("XLP", "Consumer staples ETF", "Yahoo", "Defensive rotation (vs XLY)"),
+    ("DX-Y.NYB", "US Dollar index", "Yahoo", "Strong dollar tightens global liquidity"),
+    ("HG=F", "Copper futures", "Yahoo", "Industrial demand and growth proxy"),
+    ("CL=F", "WTI crude oil futures", "Yahoo", "Energy costs and inflation (info)"),
+    ("GC=F", "Gold futures", "Yahoo", "Fear and real-rate hedge (info)"),
+    ("BTC-USD", "Bitcoin", "Yahoo", "Speculative risk appetite (info)"),
+    ("^TNX", "10-year Treasury yield index", "Yahoo", "Reference for DGS10"),
+    ("^FVX", "5-year Treasury yield index", "Yahoo", "Reference curve point (info)"),
+    ("^TYX", "30-year Treasury yield index", "Yahoo", "Reference curve point (info)"),
+    ("^IRX", "13-week T-bill yield index", "Yahoo", "Short-rate reference (info)"),
+    ("DGS10", "10-year Treasury constant maturity", "FRED", "Discount rate and mortgage cost"),
+    ("DGS2", "2-year Treasury constant maturity", "FRED", "Policy-rate expectations (info)"),
+    ("T10Y2Y", "10-year minus 2-year Treasury spread", "FRED", "Curve shape; inverted signals slowdown"),
+    ("DFII10", "10-year real yield (TIPS)", "FRED", "Real cost of money"),
+    ("T10YIE", "10-year breakeven inflation", "FRED", "Market inflation expectations"),
+    ("FEDFUNDS", "Effective federal funds rate", "FRED", "Policy-rate direction"),
+    ("BAMLH0A0HYM2", "ICE BofA high-yield option-adjusted spread", "FRED", "Credit stress"),
+    ("NFCI", "Chicago Fed National Financial Conditions Index", "FRED", "Below 0 = looser than average"),
+    ("DRTSCILM", "Bank lending standards, C&I loans", "FRED", "Net share of banks tightening credit"),
+    ("UNRATE", "Unemployment rate", "FRED", "Labour market"),
+    ("ICSA", "Initial jobless claims (weekly)", "FRED", "Layoffs"),
+    ("CPIAUCSL", "Consumer price index (all urban)", "FRED", "Headline inflation"),
+    ("PCEPILFE", "Core PCE price index", "FRED", "Fed's preferred inflation gauge"),
+    ("INDPRO", "Industrial production index", "FRED", "Manufacturing and growth"),
+    ("RSAFS", "Retail sales", "FRED", "Consumer demand"),
+]
+MACRO_YAHOO = [s for s, _, src, _ in MACRO_SYMBOLS if src == "Yahoo"]
+MACRO_FRED = [s for s, _, src, _ in MACRO_SYMBOLS if src == "FRED"]
+
+
+@st.cache_data(ttl=3600)
+def fetch_macro_prices():
+    try:
+        data = yf.download(MACRO_YAHOO, period="3y", interval="1d", auto_adjust=True, progress=False)
+        close = data["Close"] if isinstance(data.columns, pd.MultiIndex) else data
+        return close.dropna(how="all")
+    except Exception:
+        return pd.DataFrame()
+
+
+@st.cache_data(ttl=21600)
+def fetch_fred(series_id):
+    start = (pd.Timestamp.today() - pd.DateOffset(years=5)).strftime("%Y-%m-%d")
+    try:
+        df = pd.read_csv(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}&cosd={start}")
+        df.columns = ["DATE", "VALUE"]
+        s = pd.Series(pd.to_numeric(df["VALUE"], errors="coerce").values, index=pd.to_datetime(df["DATE"]))
+        return s.dropna()
+    except Exception:
+        return None
+
+
+def _ago(s, months):
+    if s is None or s.empty:
+        return None
+    past = s[s.index <= s.index[-1] - pd.DateOffset(months=months)]
+    return float(past.iloc[-1]) if len(past) else None
+
+
+def _pct_change(s, months):
+    then = _ago(s, months)
+    return (float(s.iloc[-1]) / then - 1) * 100 if then else None
+
+
+def compute_macro(px, fred):
+    rows, series_map = [], {}
+
+    def yh(sym):
+        return px[sym].dropna() if (not px.empty and sym in px.columns) else None
+
+    def add(name, group, latest, change, signal, rule, source):
+        rows.append({"Indicator": name, "Group": group, "Latest": latest, "Change": change,
+                     "signal": signal, "Rule": rule, "Source": source})
+
+    def level(s, fmt):
+        return fmt(float(s.iloc[-1])) if s is not None and len(s) else "n/a"
+
+    # Rates
+    d10 = fred.get("DGS10")
+    if d10 is not None and len(d10):
+        d = float(d10.iloc[-1]) - (_ago(d10, 3) or float(d10.iloc[-1]))
+        sig = 1 if d < -0.25 else -1 if d > 0.25 else 0
+        add("10-year Treasury yield", "Rates", level(d10, lambda v: f"{v:.2f}%"), f"{d:+.2f} pp (3m)",
+            sig, "Falls >0.25 pp in 3m = supportive; rises >0.25 pp = adverse", "FRED DGS10")
+        series_map["10-year Treasury yield"] = d10
+    else:
+        add("10-year Treasury yield", "Rates", "n/a", "n/a", None, "Data unavailable", "FRED DGS10")
+
+    curve = fred.get("T10Y2Y")
+    if curve is not None and len(curve):
+        v = float(curve.iloc[-1])
+        sig = 1 if v > 0.25 else -1 if v < 0 else 0
+        add("10y minus 2y spread", "Rates", f"{v:+.2f} pp", "", sig,
+            "Above 0.25 pp = normal curve (+1); below 0 = inverted (−1)", "FRED T10Y2Y")
+        series_map["10y minus 2y spread"] = curve
+    else:
+        add("10y minus 2y spread", "Rates", "n/a", "n/a", None, "Data unavailable", "FRED T10Y2Y")
+
+    ff = fred.get("FEDFUNDS")
+    if ff is not None and len(ff):
+        d = float(ff.iloc[-1]) - (_ago(ff, 6) or float(ff.iloc[-1]))
+        sig = 1 if d <= -0.25 else -1 if d >= 0.25 else 0
+        add("Fed funds rate", "Rates", level(ff, lambda v: f"{v:.2f}%"), f"{d:+.2f} pp (6m)", sig,
+            "Cutting (≤−0.25 pp in 6m) = +1; hiking (≥+0.25 pp) = −1", "FRED FEDFUNDS")
+    else:
+        add("Fed funds rate", "Rates", "n/a", "n/a", None, "Data unavailable", "FRED FEDFUNDS")
+
+    real = fred.get("DFII10")
+    if real is not None and len(real):
+        v = float(real.iloc[-1])
+        sig = 1 if v < 1 else -1 if v > 2 else 0
+        add("10-year real yield", "Rates", level(real, lambda x: f"{x:.2f}%"), "", sig,
+            "Below 1% = +1; above 2% = −1", "FRED DFII10")
+    else:
+        add("10-year real yield", "Rates", "n/a", "n/a", None, "Data unavailable", "FRED DFII10")
+
+    # Credit and liquidity
+    hy = fred.get("BAMLH0A0HYM2")
+    if hy is not None and len(hy):
+        d = float(hy.iloc[-1]) - (_ago(hy, 3) or float(hy.iloc[-1]))
+        sig = 1 if d < -0.2 else -1 if d > 0.3 else 0
+        add("High-yield credit spread", "Credit", level(hy, lambda v: f"{v:.2f}%"), f"{d:+.2f} pp (3m)", sig,
+            "Narrowing >0.2 pp = +1; widening >0.3 pp = −1", "FRED BAMLH0A0HYM2")
+        series_map["High-yield credit spread"] = hy
+    else:
+        add("High-yield credit spread", "Credit", "n/a", "n/a", None, "Data unavailable", "FRED BAMLH0A0HYM2")
+
+    nfci = fred.get("NFCI")
+    if nfci is not None and len(nfci):
+        v = float(nfci.iloc[-1])
+        sig = 1 if v < 0 else -1 if v > 0 else 0
+        add("Financial conditions (NFCI)", "Credit", f"{v:+.2f}", "", sig,
+            "Below 0 = looser than average (+1); above 0 = tighter (−1)", "FRED NFCI")
+        series_map["Financial conditions (NFCI)"] = nfci
+    else:
+        add("Financial conditions (NFCI)", "Credit", "n/a", "n/a", None, "Data unavailable", "FRED NFCI")
+
+    hyg, lqd = yh("HYG"), yh("LQD")
+    if hyg is not None and lqd is not None:
+        ratio = (hyg / lqd).dropna()
+        d = _pct_change(ratio, 3)
+        sig = None if d is None else (1 if d > 0 else -1 if d < 0 else 0)
+        add("High-yield vs investment-grade bonds", "Credit", f"{ratio.iloc[-1]:.3f}",
+            f"{d:+.1f}% (3m)" if d is not None else "n/a", sig,
+            "HYG outperforming LQD over 3m = +1; underperforming = −1", "Yahoo HYG / LQD")
+    else:
+        add("High-yield vs investment-grade bonds", "Credit", "n/a", "n/a", None, "Data unavailable", "Yahoo HYG / LQD")
+
+    lend = fred.get("DRTSCILM")
+    if lend is not None and len(lend):
+        v = float(lend.iloc[-1])
+        sig = 1 if v < 0 else -1 if v > 20 else 0
+        add("Bank lending standards (C&I)", "Credit", f"{v:+.1f}%", "", sig,
+            "Net easing (below 0) = +1; net tightening above 20% = −1", "FRED DRTSCILM")
+    else:
+        add("Bank lending standards (C&I)", "Credit", "n/a", "n/a", None, "Data unavailable", "FRED DRTSCILM")
+
+    # Growth and labour
+    ur = fred.get("UNRATE")
+    if ur is not None and len(ur):
+        d = float(ur.iloc[-1]) - (_ago(ur, 6) or float(ur.iloc[-1]))
+        sig = 1 if d <= 0 else -1 if d >= 0.5 else 0
+        add("Unemployment rate", "Growth", level(ur, lambda v: f"{v:.1f}%"), f"{d:+.1f} pp (6m)", sig,
+            "Flat or falling = +1; rising ≥0.5 pp = −1", "FRED UNRATE")
+    else:
+        add("Unemployment rate", "Growth", "n/a", "n/a", None, "Data unavailable", "FRED UNRATE")
+
+    claims = fred.get("ICSA")
+    if claims is not None and len(claims) >= 52:
+        ratio = float(claims.tail(4).mean()) / float(claims.tail(52).mean())
+        sig = 1 if ratio <= 1.0 else -1 if ratio >= 1.10 else 0
+        add("Jobless claims (4wk vs 52wk avg)", "Growth", f"{claims.tail(4).mean():,.0f}",
+            f"{(ratio - 1) * 100:+.1f}%", sig, "At or below 52-week average = +1; ≥10% above = −1", "FRED ICSA")
+    else:
+        add("Jobless claims (4wk vs 52wk avg)", "Growth", "n/a", "n/a", None, "Data unavailable", "FRED ICSA")
+
+    ip = fred.get("INDPRO")
+    if ip is not None and len(ip) > 13:
+        yoy = _pct_change(ip, 12)
+        sig = 1 if yoy > 0 else -1 if yoy < -1 else 0
+        add("Industrial production", "Growth", f"{yoy:+.1f}% YoY", "", sig,
+            "Growing = +1; falling more than 1% = −1", "FRED INDPRO")
+    else:
+        add("Industrial production", "Growth", "n/a", "n/a", None, "Data unavailable", "FRED INDPRO")
+
+    rs = fred.get("RSAFS")
+    if rs is not None and len(rs) > 13:
+        yoy = _pct_change(rs, 12)
+        sig = 1 if yoy > 3 else -1 if yoy < 0 else 0
+        add("Retail sales", "Growth", f"{yoy:+.1f}% YoY", "", sig,
+            "Above 3% YoY = +1; negative = −1", "FRED RSAFS")
+    else:
+        add("Retail sales", "Growth", "n/a", "n/a", None, "Data unavailable", "FRED RSAFS")
+
+    xly, xlp = yh("XLY"), yh("XLP")
+    if xly is not None and xlp is not None:
+        ratio = (xly / xlp).dropna()
+        d = _pct_change(ratio, 3)
+        sig = None if d is None else (1 if d > 0 else -1 if d < 0 else 0)
+        add("Discretionary vs staples", "Growth", f"{ratio.iloc[-1]:.3f}",
+            f"{d:+.1f}% (3m)" if d is not None else "n/a", sig,
+            "Discretionary outperforming = +1 (growth appetite)", "Yahoo XLY / XLP")
+    else:
+        add("Discretionary vs staples", "Growth", "n/a", "n/a", None, "Data unavailable", "Yahoo XLY / XLP")
+
+    # Inflation
+    cpi = fred.get("CPIAUCSL")
+    if cpi is not None and len(cpi) > 13:
+        yoy = _pct_change(cpi, 12)
+        sig = 1 if yoy < 3 else -1 if yoy > 4 else 0
+        add("CPI inflation (YoY)", "Inflation", f"{yoy:.1f}%", "", sig,
+            "Below 3% = +1; above 4% = −1", "FRED CPIAUCSL")
+        series_map["CPI inflation (YoY)"] = cpi.pct_change(12).dropna() * 100
+    else:
+        add("CPI inflation (YoY)", "Inflation", "n/a", "n/a", None, "Data unavailable", "FRED CPIAUCSL")
+
+    pce = fred.get("PCEPILFE")
+    if pce is not None and len(pce) > 13:
+        yoy = _pct_change(pce, 12)
+        sig = 1 if yoy < 2.5 else -1 if yoy > 3.5 else 0
+        add("Core PCE inflation (YoY)", "Inflation", f"{yoy:.1f}%", "", sig,
+            "Below 2.5% = +1; above 3.5% = −1", "FRED PCEPILFE")
+        series_map["Core PCE inflation (YoY)"] = pce.pct_change(12).dropna() * 100
+    else:
+        add("Core PCE inflation (YoY)", "Inflation", "n/a", "n/a", None, "Data unavailable", "FRED PCEPILFE")
+
+    be = fred.get("T10YIE")
+    if be is not None and len(be):
+        v = float(be.iloc[-1])
+        sig = 1 if v < 2.5 else -1 if v > 2.8 else 0
+        add("10-year breakeven inflation", "Inflation", f"{v:.2f}%", "", sig,
+            "Below 2.5% = +1; above 2.8% = −1", "FRED T10YIE")
+    else:
+        add("10-year breakeven inflation", "Inflation", "n/a", "n/a", None, "Data unavailable", "FRED T10YIE")
+
+    # Market risk appetite
+    vix = yh("^VIX")
+    if vix is not None and len(vix) > 60:
+        med = float(vix.tail(252).median())
+        v = float(vix.iloc[-1])
+        sig = 1 if v < med else -1 if v > 1.3 * med else 0
+        add("VIX volatility", "Risk appetite", f"{v:.1f}", f"1y median {med:.1f}", sig,
+            "Below 1-year median = +1; above 1.3× median = −1", "Yahoo ^VIX")
+        series_map["VIX volatility"] = vix
+    else:
+        add("VIX volatility", "Risk appetite", "n/a", "n/a", None, "Data unavailable", "Yahoo ^VIX")
+
+    spx = yh("^GSPC")
+    if spx is not None and len(spx) > 200:
+        ma = spx.rolling(200).mean()
+        gap = (float(spx.iloc[-1]) / float(ma.iloc[-1]) - 1) * 100
+        sig = 1 if gap > 0 else -1
+        add("S&P 500 vs 200-day average", "Risk appetite", f"{gap:+.1f}%", "", sig,
+            "Above the 200-day average = +1; below = −1", "Yahoo ^GSPC")
+        series_map["S&P 500 vs 200-day average"] = (spx / ma - 1).dropna() * 100
+    else:
+        add("S&P 500 vs 200-day average", "Risk appetite", "n/a", "n/a", None, "Data unavailable", "Yahoo ^GSPC")
+
+    rut = yh("^RUT")
+    if rut is not None and spx is not None:
+        ratio = (rut / spx).dropna()
+        d = _pct_change(ratio, 3)
+        sig = None if d is None else (1 if d > 0 else -1 if d < 0 else 0)
+        add("Small caps vs large caps (Russell 2000 ÷ S&P 500)", "Risk appetite", f"{ratio.iloc[-1]:.3f}",
+            f"{d:+.1f}% (3m)" if d is not None else "n/a", sig,
+            "Small caps outperforming over 3m = +1 (key for this framework)", "Yahoo ^RUT / ^GSPC")
+        series_map["Russell 2000 ÷ S&P 500"] = ratio
+    else:
+        add("Small caps vs large caps (Russell 2000 ÷ S&P 500)", "Risk appetite", "n/a", "n/a", None,
+            "Data unavailable", "Yahoo ^RUT / ^GSPC")
+
+    rsp, spy = yh("RSP"), yh("SPY")
+    if rsp is not None and spy is not None:
+        ratio = (rsp / spy).dropna()
+        d = _pct_change(ratio, 3)
+        sig = None if d is None else (1 if d > 0 else -1 if d < 0 else 0)
+        add("Market breadth (equal-weight ÷ cap-weight)", "Risk appetite", f"{ratio.iloc[-1]:.3f}",
+            f"{d:+.1f}% (3m)" if d is not None else "n/a", sig,
+            "Equal-weight outperforming = +1 (broad participation)", "Yahoo RSP / SPY")
+    else:
+        add("Market breadth (equal-weight ÷ cap-weight)", "Risk appetite", "n/a", "n/a", None,
+            "Data unavailable", "Yahoo RSP / SPY")
+
+    dxy = yh("DX-Y.NYB")
+    if dxy is not None and len(dxy) > 63:
+        d = _pct_change(dxy, 3)
+        sig = 1 if d < -1 else -1 if d > 2 else 0
+        add("US dollar index", "Dollar and commodities", f"{float(dxy.iloc[-1]):.2f}", f"{d:+.1f}% (3m)", sig,
+            "Weakening >1% over 3m = +1; strengthening >2% = −1", "Yahoo DX-Y.NYB")
+        series_map["US dollar index"] = dxy
+    else:
+        add("US dollar index", "Dollar and commodities", "n/a", "n/a", None, "Data unavailable", "Yahoo DX-Y.NYB")
+
+    cu = yh("HG=F")
+    if cu is not None and len(cu) > 63:
+        d = _pct_change(cu, 3)
+        sig = 1 if d > 3 else -1 if d < -5 else 0
+        add("Copper (3m trend)", "Dollar and commodities", f"{float(cu.iloc[-1]):.2f}", f"{d:+.1f}%", sig,
+            "Up >3% over 3m = +1 (demand); down >5% = −1", "Yahoo HG=F")
+        series_map["Copper"] = cu
+    else:
+        add("Copper (3m trend)", "Dollar and commodities", "n/a", "n/a", None, "Data unavailable", "Yahoo HG=F")
+
+    for sym, label, rule in [
+        ("CL=F", "Oil (3m trend)", "Information only: oil moves cut both ways"),
+        ("GC=F", "Gold (3m trend)", "Information only: rises on fear or falling real rates"),
+        ("BTC-USD", "Bitcoin (3m trend)", "Information only: speculative risk appetite"),
+        ("TLT", "Long Treasuries (3m trend)", "Information only: duration moves"),
+    ]:
+        s = yh(sym)
+        if s is not None and len(s) > 63:
+            d = _pct_change(s, 3)
+            add(label, "Dollar and commodities", f"{float(s.iloc[-1]):,.2f}", f"{d:+.1f}%", None, rule, f"Yahoo {sym}")
+        else:
+            add(label, "Dollar and commodities", "n/a", "n/a", None, "Data unavailable", f"Yahoo {sym}")
+
+    scored = [r["signal"] for r in rows if r["signal"] is not None]
+    score = sum(scored)
+    ratio_score = score / len(scored) if scored else None
+    if ratio_score is None:
+        verdict = "Insufficient data"
+    elif ratio_score >= 0.25:
+        verdict = "Buy"
+    elif ratio_score <= -0.25:
+        verdict = "Sell"
+    else:
+        verdict = "Hold"
+    info = {
+        "verdict": verdict,
+        "ratio": ratio_score,
+        "risk_on": sum(1 for s in scored if s == 1),
+        "risk_off": sum(1 for s in scored if s == -1),
+        "neutral": sum(1 for s in scored if s == 0),
+        "available": len(scored),
+        "total": len(rows),
+    }
+    return rows, series_map, info
+
+
+MACRO_SCORING_GUIDE = """
+**How the regime is scored.** Each indicator gives +1 (Supportive), 0 (Neutral) or −1 (Adverse). The net score is the sum divided by the number of scored indicators. Information-only rows are not scored.
+
+**Regime bands**: net score of +0.25 or higher = **Buy** (full target exposure to small caps); −0.25 or lower = **Sell** (reduce exposure); anything between = **Hold**.
+
+**Rates**
+- 10-year yield: falls more than 0.25 pp over 3 months = Supportive; rises more than 0.25 pp = Adverse.
+- 10y minus 2y spread: above 0.25 pp = Supportive; below 0 (inverted) = Adverse.
+- Fed funds, 6 months: cut of 0.25 pp or more = Supportive; hike of 0.25 pp or more = Adverse.
+- 10-year real yield: below 1% = Supportive; above 2% = Adverse.
+
+**Credit**
+- High-yield spread, 3 months: narrows more than 0.2 pp = Supportive; widens more than 0.3 pp = Adverse.
+- Financial conditions (NFCI): below 0 = Supportive; above 0 = Adverse.
+- HYG versus LQD, 3 months: rising = Supportive; falling = Adverse.
+- Bank lending standards: net easing (below 0) = Supportive; above 20% tightening = Adverse.
+
+**Growth and labour**
+- Unemployment, 6 months: flat or falling = Supportive; rises 0.5 pp or more = Adverse.
+- Jobless claims, 4-week versus 52-week average: at or below 1.00 = Supportive; 10% or more above = Adverse.
+- Industrial production, year on year: growing = Supportive; falling more than 1% = Adverse.
+- Retail sales, year on year: above 3% = Supportive; negative = Adverse.
+- Discretionary versus staples, 3 months: rising = Supportive (growth appetite); falling = Adverse.
+
+**Inflation**
+- CPI, year on year: below 3% = Supportive; above 4% = Adverse.
+- Core PCE, year on year: below 2.5% = Supportive; above 3.5% = Adverse.
+- 10-year breakeven inflation: below 2.5% = Supportive; above 2.8% = Adverse.
+
+**Risk appetite**
+- VIX versus its 1-year median: below = Supportive; above 1.3× = Adverse.
+- S&P 500 versus its 200-day average: above = Supportive; below = Adverse.
+- Russell 2000 versus S&P 500, 3 months: rising = Supportive; falling = Adverse.
+- Equal-weight versus cap-weight S&P 500, 3 months: rising = Supportive; falling = Adverse.
+
+**Dollar and commodities**
+- Dollar index, 3 months: down more than 1% = Supportive; up more than 2% = Adverse.
+- Copper, 3 months: up more than 3% = Supportive; down more than 5% = Adverse.
+- Oil, gold, Bitcoin and long Treasuries are shown for information only.
+
+**Market fear and greed** is a separate gauge: each of seven components is ranked within its last three years, and the gauge is the average. 0–25 extreme fear, 25–45 fear, 45–55 neutral, 55–75 greed, 75–100 extreme greed.
+
+These thresholds are starting points, not back-tested rules.
+"""
+
+MACRO_GLOSSARY = {
+    "Supportive": "An indicator that favours holding or adding small-cap exposure (formerly risk-on).",
+    "Adverse": "An indicator that argues for reducing small-cap exposure (formerly risk-off).",
+    "Net macro score": "Supportive signals minus Adverse signals, divided by the number of scored indicators. Ranges from −1 to +1; shown ×100 on the gauge.",
+    "Regime": "The Buy, Hold or Sell verdict derived from the net macro score.",
+    "Yield curve": "The gap between long and short Treasury yields. A normal curve slopes up; an inverted one has short yields above long yields, which has preceded slowdowns.",
+    "Real yield": "A Treasury yield after inflation (TIPS). High real yields make borrowing and holding long-duration assets costlier.",
+    "Breakeven inflation": "The inflation rate that bond markets imply, from the gap between nominal and inflation-protected Treasury yields.",
+    "Fed funds rate": "The policy interest rate set by the Federal Reserve. Cuts ease financial conditions; hikes tighten them.",
+    "High-yield spread": "Extra yield that risky corporate bonds pay over Treasuries. Widening spreads signal credit stress.",
+    "NFCI": "Chicago Fed National Financial Conditions Index. Below 0 means looser conditions than average; above 0 means tighter.",
+    "Lending standards": "Senior Loan Officer survey: the net share of banks tightening (positive) or easing (negative) business loans.",
+    "Jobless claims": "Weekly initial unemployment insurance claims. A rising trend is an early sign of layoffs.",
+    "PCE": "Personal Consumption Expenditures price index. The Fed's preferred inflation measure; the core version excludes food and energy.",
+    "CPI": "Consumer Price Index: the headline measure of consumer inflation.",
+    "VIX": "CBOE Volatility Index: the market's expected 30-day volatility of the S&P 500, implied by options. High readings mean fear.",
+    "VIX term structure": "The VIX compared with the 3-month VIX. Normal (contango) means the 3-month is higher; inverted (backwardation) means near-term stress is priced above longer-term.",
+    "Market breadth": "How many stocks take part in a rally. Equal-weight outperformance means gains are broad rather than led by a few mega caps.",
+    "Small caps vs large caps": "The Russell 2000 divided by the S&P 500. Rising means small caps are leading, which tends to suit this framework.",
+    "Risk appetite": "How willing investors are to hold riskier assets. Shown through volatility, credit, small caps, breadth and momentum.",
+    "Momentum": "Where the S&P 500 sits relative to its moving average. Above the average suggests an uptrend.",
+    "Dollar index": "Value of the US dollar against a basket of major currencies. A strong dollar tightens global financial conditions.",
+    "Copper": "An industrial metal used as a proxy for global manufacturing demand.",
+    "Fear & greed gauge": "A 0–100 score built from seven market measures, each ranked within its last three years. 0 is extreme fear, 100 is extreme greed.",
+    "Percentile": "A component's rank within its own history. 80 means the current reading is higher than 80% of the last three years.",
+    "FRED": "Federal Reserve Economic Data, the public database of US economic series used here.",
+}
+
+
+def _percentile_rank(series, invert=False):
+    s = series.dropna().tail(756)
+    if len(s) < 60:
+        return None
+    rank = float((s <= s.iloc[-1]).mean())
+    return 1 - rank if invert else rank
+
+
+def compute_fear_greed(px):
+    """0 = extreme fear, 100 = extreme greed. Each component is ranked within its last 3 years."""
+    def yh(sym):
+        return px[sym].dropna() if (not px.empty and sym in px.columns) else None
+
+    spx, spy, rsp = yh("^GSPC"), yh("SPY"), yh("RSP")
+    vix, vix3m = yh("^VIX"), yh("^VIX3M")
+    tlt, hyg, lqd, iwm = yh("TLT"), yh("HYG"), yh("LQD"), yh("IWM")
+
+    def ratio(a, b):
+        return (a / b).dropna() if a is not None and b is not None else None
+
+    components = []
+
+    def add(name, series, invert, reading):
+        pct = _percentile_rank(series, invert) if series is not None else None
+        components.append({
+            "Component": name,
+            "Latest": reading(series) if series is not None and len(series) else "n/a",
+            "Greed percentile": round(pct * 100) if pct is not None else None,
+        })
+
+    add("VIX level (inverted)", vix, True, lambda s: f"{float(s.iloc[-1]):.1f}")
+    add("VIX term structure, 1m ÷ 3m (inverted)", ratio(vix, vix3m), True,
+        lambda s: f"{float(s.iloc[-1]):.2f}")
+    add("Stocks vs Treasuries (SPY ÷ TLT)", ratio(spy, tlt), False, lambda s: f"{float(s.iloc[-1]):.2f}")
+    add("Junk bond demand (HYG ÷ LQD)", ratio(hyg, lqd), False, lambda s: f"{float(s.iloc[-1]):.3f}")
+    add("Market momentum (S&P vs 125-day avg)",
+        (spx / spx.rolling(125).mean() - 1).dropna() * 100 if spx is not None else None, False,
+        lambda s: f"{float(s.iloc[-1]):+.1f}%")
+    add("Market breadth (RSP ÷ SPY)", ratio(rsp, spy), False, lambda s: f"{float(s.iloc[-1]):.3f}")
+    add("Small-cap appetite (IWM ÷ SPY)", ratio(iwm, spy), False, lambda s: f"{float(s.iloc[-1]):.3f}")
+
+    pcts = [c["Greed percentile"] for c in components if c["Greed percentile"] is not None]
+    score = sum(pcts) / len(pcts) if pcts else None
+    return score, components
+
+
+def fear_greed_label(score):
+    if score is None:
+        return "Unavailable"
+    if score < 25:
+        return "Extreme fear"
+    if score < 45:
+        return "Fear"
+    if score <= 55:
+        return "Neutral"
+    if score <= 75:
+        return "Greed"
+    return "Extreme greed"
+
+
+def render_macro_tab():
+    with st.spinner("Loading macro data…"):
+        px = fetch_macro_prices()
+        fred = {sid: fetch_fred(sid) for sid in MACRO_FRED}
+    rows, series_map, info = compute_macro(px, fred)
+
+    verdict = info["verdict"]
+    color = {"Buy": "#2e7d32", "Hold": "#b26a00", "Sell": "#c62828"}.get(verdict, "#64748b")
+    guidance = {
+        "Buy": "Supportive. Macro supports full target exposure to small caps.",
+        "Hold": "Neutral. Keep current exposure; add only on stock-level conviction.",
+        "Sell": "Adverse. Macro argues for reducing small-cap exposure.",
+        "Insufficient data": "Not enough indicators loaded to give a regime.",
+    }[verdict]
+    st.markdown(
+        f'<div class="rpt-head">'
+        f'<div><span class="rpt-badge" style="background:{color}">Macro regime: {html.escape(verdict)}</span>'
+        f'<div class="rpt-sub">{html.escape(guidance)}</div></div>'
+        f'<div class="rpt-score">{info["risk_on"]}<span> supportive · {info["risk_off"]} adverse · '
+        f'{info["neutral"]} neutral of {info["available"]} scored</span></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("📖 Macro scoring logic"):
+        st.markdown(MACRO_SCORING_GUIDE)
+    with st.expander("📚 Macro key terms"):
+        st.markdown("\n\n".join(f"**{term}**: {meaning}" for term, meaning in MACRO_GLOSSARY.items()))
+
+    fg_score, fg_components = compute_fear_greed(px)
+    st.subheader("😨 Market Fear & Greed")
+    fg_left, fg_right = st.columns([1, 2])
+    with fg_left:
+        fig_fg = go.Figure(go.Indicator(
+            mode="gauge+number", value=fg_score if fg_score is not None else 0,
+            number={"valueformat": ".0f"},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "#334155"},
+                "steps": [
+                    {"range": [0, 25], "color": "#fecaca"},
+                    {"range": [25, 45], "color": "#fed7aa"},
+                    {"range": [45, 55], "color": "#fef3c7"},
+                    {"range": [55, 75], "color": "#d9f99d"},
+                    {"range": [75, 100], "color": "#bbf7d0"},
+                ],
+            },
+            title={"text": f"{fear_greed_label(fg_score)}"},
+        ))
+        fig_fg.update_layout(height=240, margin=dict(l=20, r=20, t=50, b=10))
+        st.plotly_chart(fig_fg, use_container_width=True)
+    with fg_right:
+        st.dataframe(pd.DataFrame(fg_components), use_container_width=True, hide_index=True)
+        st.caption(
+            "Each component is ranked against its own last 3 years: 0 = most fearful, 100 = most greedy, "
+            "and the gauge is the average. A self-built gauge, not CNN's index."
+        )
+
+    gauge_val = (info["ratio"] or 0) * 100
+    fig_gauge = go.Figure(go.Indicator(
+        mode="gauge+number", value=gauge_val,
+        number={"suffix": "", "valueformat": ".0f"},
+        gauge={
+            "axis": {"range": [-100, 100]},
+            "bar": {"color": color},
+            "steps": [
+                {"range": [-100, -25], "color": "#fecaca"},
+                {"range": [-25, 25], "color": "#fef3c7"},
+                {"range": [25, 100], "color": "#bbf7d0"},
+            ],
+        },
+        title={"text": "Net macro score (−100 adverse … +100 supportive)"},
+    ))
+    fig_gauge.update_layout(height=260, margin=dict(l=20, r=20, t=50, b=10))
+    st.plotly_chart(fig_gauge, use_container_width=True)
+
+    st.subheader("Indicators")
+    sig_text = {1: "🟢 Supportive", 0: "🟡 Neutral", -1: "🔴 Adverse", None: "ℹ️ Info / no data"}
+    table = pd.DataFrame([{**{k: v for k, v in r.items() if k != "signal"}, "Signal": sig_text[r["signal"]]} for r in rows])
+    st.dataframe(table, use_container_width=True, hide_index=True)
+
+    st.subheader("Trend charts")
+    if series_map:
+        choice = st.selectbox("Series", list(series_map.keys()), key="macro_series")
+        s = series_map[choice]
+        s = s[s.index >= s.index[-1] - pd.DateOffset(years=3)]
+        fig_line = px_line(s, choice)
+        st.plotly_chart(fig_line, use_container_width=True)
+    else:
+        st.info("No series loaded for charting.")
+
+    with st.expander("Symbols tracked (Yahoo Finance and FRED)"):
+        st.dataframe(
+            pd.DataFrame(MACRO_SYMBOLS, columns=["Symbol", "Name", "Source", "Used for"]),
+            use_container_width=True, hide_index=True,
+        )
+    st.caption(
+        "Macro overlay only, not investment advice. Thresholds are starting points, not tested rules: "
+        "back-test them across past cycles before relying on them. Signals are updated when the data changes."
+    )
+
+
+def px_line(s, title):
+    fig = go.Figure(go.Scatter(x=s.index, y=s.values, mode="lines", line=dict(color="#2962FF", width=2)))
+    fig.update_layout(title=title, height=340, margin=dict(l=20, r=20, t=50, b=20), yaxis_title=title)
+    return fig
+
+
+# ── Indices and sector trends ───────────────────────────────────────────────
+
+INDEX_UNIVERSE = (
+    [(s, n, "Index / ETF") for s, n in [
+        ("SPY", "S&P 500 ETF"), ("^GSPC", "S&P 500 index"), ("QQQ", "Nasdaq-100 ETF"), ("^NDX", "Nasdaq-100 index"),
+        ("DIA", "Dow Jones ETF"), ("^DJI", "Dow Jones index"), ("IWM", "Russell 2000 ETF"), ("^RUT", "Russell 2000 index"),
+        ("MDY", "S&P MidCap 400 ETF"), ("IJR", "S&P SmallCap 600 ETF"), ("RSP", "S&P 500 equal-weight ETF"),
+        ("EFA", "Developed markets ex-US"), ("EEM", "Emerging markets"), ("^FTSE", "FTSE 100 (UK)"),
+        ("^GDAXI", "DAX (Germany)"), ("^N225", "Nikkei 225 (Japan)"), ("^HSI", "Hang Seng (Hong Kong)"),
+    ]]
+    + [(s, n, "Sector") for s, n in [
+        ("XLK", "Technology"), ("XLF", "Financials"), ("XLV", "Health care"), ("XLE", "Energy"),
+        ("XLI", "Industrials"), ("XLY", "Consumer discretionary"), ("XLP", "Consumer staples"),
+        ("XLU", "Utilities"), ("XLB", "Materials"), ("XLRE", "Real estate"), ("XLC", "Communication services"),
+    ]]
+    + [(s, n, "Theme") for s, n in [
+        ("SMH", "Semiconductors"), ("XBI", "Biotech"), ("KRE", "Regional banks"), ("XHB", "Homebuilders"),
+        ("ITA", "Aerospace & defence"), ("XME", "Metals & mining"), ("GDX", "Gold miners"), ("URA", "Uranium"),
+        ("ICLN", "Clean energy"), ("IGV", "Software"),
+    ]]
+)
+
+# (key, label, trading days, moving average used for the price check)
+HORIZONS = [("Primary", "2 years", 504, 200), ("Secondary", "9 months", 189, 100), ("Tertiary", "3 months", 63, 50)]
+
+
+COMMODITY_UNIVERSE = (
+    [(s, n, "Precious metals") for s, n in [("GC=F", "Gold"), ("SI=F", "Silver"), ("PL=F", "Platinum"), ("PA=F", "Palladium")]]
+    + [(s, n, "Industrial metals") for s, n in [("HG=F", "Copper"), ("ALI=F", "Aluminium")]]
+    + [(s, n, "Energy") for s, n in [("CL=F", "WTI crude oil"), ("BZ=F", "Brent crude oil"), ("NG=F", "Natural gas"),
+                                     ("HO=F", "Heating oil"), ("RB=F", "Gasoline")]]
+    + [(s, n, "Agriculture") for s, n in [("ZC=F", "Corn"), ("ZW=F", "Wheat"), ("ZS=F", "Soybeans"), ("KC=F", "Coffee"),
+                                          ("SB=F", "Sugar"), ("CT=F", "Cotton"), ("CC=F", "Cocoa")]]
+    + [(s, n, "Commodity ETFs") for s, n in [("GLD", "Gold ETF"), ("SLV", "Silver ETF"), ("DBC", "Broad commodity ETF"),
+                                             ("USO", "Oil ETF"), ("UNG", "Natural gas ETF"), ("CPER", "Copper ETF"),
+                                             ("LIT", "Lithium ETF")]]
+)
+
+MARKETS = {
+    "indices": dict(title="Indices, Sectors & Themes", subtitle="Major indices, sector ETFs and thematic ETFs",
+                    universe=INDEX_UNIVERSE, bench="SPY", bar_group="Sector"),
+    "commodities": dict(title="Commodities", subtitle="Metals, energy, agriculture and commodity ETFs",
+                        universe=COMMODITY_UNIVERSE, bench="DBC", bar_group=None),
+}
+HORIZON_SHORT = {"Primary": "2Y", "Secondary": "9M", "Tertiary": "3M"}
+
+
+@st.cache_data(ttl=3600)
+def fetch_trend_prices(symbols):
+    try:
+        data = yf.download(list(symbols), period="5y", interval="1d", auto_adjust=True, progress=False)
+        close = data["Close"] if isinstance(data.columns, pd.MultiIndex) else data
+        return close.dropna(how="all")
+    except Exception:
+        return pd.DataFrame()
+
+
+def _rsi_macd(close):
+    delta = close.diff()
+    gain = delta.clip(lower=0).ewm(alpha=1 / 14, adjust=False).mean()
+    loss = (-delta.clip(upper=0)).ewm(alpha=1 / 14, adjust=False).mean()
+    rsi = 100 - 100 / (1 + gain / loss)
+    macd = close.ewm(span=12, adjust=False).mean() - close.ewm(span=26, adjust=False).mean()
+    hist = macd - macd.ewm(span=9, adjust=False).mean()
+    return rsi, hist
+
+
+def _confirmed_state(cond, confirm=3):
+    """Bullish once the condition has held for `confirm` days in a row, Bearish once it has been false that long."""
+    vals = cond.dropna().astype(bool)
+    state, since = None, None
+    for i in range(confirm - 1, len(vals)):
+        window = vals.iloc[i - confirm + 1: i + 1]
+        if window.all():
+            new = "Bullish"
+        elif not window.any():
+            new = "Bearish"
+        else:
+            continue
+        if new != state:
+            state, since = new, vals.index[i]
+    return state, since
+
+
+def _breakout_state(close, up=55, down=20):
+    """Bullish on a close above the prior 55-day high, Bearish on a close below the prior 20-day low."""
+    hi = close.shift(1).rolling(up).max()
+    lo = close.shift(1).rolling(down).min()
+    state, since = None, None
+    for date, c, h, l in zip(close.index, close.values, hi.values, lo.values):
+        if np.isnan(h) or np.isnan(l):
+            continue
+        if c > h:
+            new = "Bullish"
+        elif c < l:
+            new = "Bearish"
+        else:
+            continue
+        if new != state:
+            state, since = new, date
+    return state, since
+
+
+def analyse_index(close, bench=None):
+    if len(close) < 260:
+        return None
+    rsi, hist = _rsi_macd(close)
+    smas = {w: close.rolling(w).mean() for w in (50, 100, 200)}
+    last = float(close.iloc[-1])
+    out = {
+        "price": last,
+        "rsi": float(rsi.iloc[-1]),
+        "macd": float(hist.iloc[-1]),
+        "vs50": (last / smas[50].iloc[-1] - 1) * 100 if pd.notna(smas[50].iloc[-1]) else None,
+        "vs200": (last / smas[200].iloc[-1] - 1) * 100 if pd.notna(smas[200].iloc[-1]) else None,
+    }
+    for key, _, n, w in HORIZONS:
+        ma = smas[w]
+        if len(close) <= n or pd.isna(ma.iloc[-1]) or pd.isna(ma.iloc[-1 - n]):
+            out[key] = None
+            continue
+        ret = last / float(close.iloc[-1 - n]) - 1
+        checks = [
+            ret > 0,
+            last > ma.iloc[-1],
+            ma.iloc[-1] > ma.iloc[-1 - n],
+            hist.iloc[-1] > 0,
+        ]
+        score = sum(checks)
+        window = close.iloc[-(n + 1):]
+        hi, lo = float(window.max()), float(window.min())
+        pos = (last - lo) / (hi - lo) * 100 if hi > lo else 50.0
+        status = "Overbought" if pos >= 80 else "Oversold" if pos <= 20 else "Neutral"
+        out[key] = {"ret": ret * 100, "score": score, "trend": "Bullish" if score >= 3 else "Bearish",
+                    "pos": pos, "status": status}
+    ma_cond = (smas[50] > smas[200]).where(smas[50].notna() & smas[200].notna())
+    out["sig_ma"] = _confirmed_state(ma_cond)
+    out["sig_bo"] = _breakout_state(close)
+    if bench is not None:
+        ratio = (close / bench).dropna()
+        out["sig_rs"] = _confirmed_state(ratio > ratio.rolling(50).mean())
+    else:
+        out["sig_rs"] = (None, None)
+    return out
+
+
+def _ret_text(h):
+    return "n/a" if h is None else f"{h['ret']:+.1f}%"
+
+
+def _trend_label(h):
+    return "n/a" if h is None else f"{h['trend']} {h['score']}/4"
+
+
+def _range_label(h):
+    return "n/a" if h is None else f"{h['status']} · {h['pos']:.0f}%"
+
+
+def _signal_label(sig):
+    state, since = sig
+    return "n/a" if state is None else f"{state} · since {since:%Y-%m-%d}"
+
+
+def _style_labels(df, cols=None):
+    def color(v):
+        if not isinstance(v, str):
+            return ""
+        if v.startswith("Bullish"):
+            return "background-color:#bbf7d0;color:#14532d;font-weight:600;border-radius:6px"
+        if v.startswith("Bearish"):
+            return "background-color:#fecaca;color:#7f1d1d;font-weight:600;border-radius:6px"
+        if v.startswith("Overbought"):
+            return "background-color:#fed7aa;color:#7c2d12;font-weight:600;border-radius:6px"
+        if v.startswith("Oversold"):
+            return "background-color:#bfdbfe;color:#1e3a8a;font-weight:600;border-radius:6px"
+        return ""
+    label_cols = cols or [c for c in df.columns if c.endswith(("trend", "range"))]
+    return df.style.map(color, subset=label_cols).hide(axis="index")
+
+
+def _short_status(h):
+    return {"Overbought": "OB", "Oversold": "OS"}.get(h["status"], "Mid")
+
+
+def _tile_html(r):
+    chips, rng, rets = [], [], []
+    for key, _, _, _ in HORIZONS:
+        short, h = HORIZON_SHORT[key], r[key]
+        if h is None:
+            chips.append(f'<span class="chip-na">{short} n/a</span>')
+            rng.append(f'<span class="chip-na">{short} n/a</span>')
+            rets.append(f"{short} n/a")
+            continue
+        cls = "chip-bull" if h["trend"] == "Bullish" else "chip-bear"
+        chips.append(f'<span class="{cls}">{short} {h["trend"]} {h["score"]}/4</span>')
+        rcls = {"Overbought": "chip-ob", "Oversold": "chip-os"}.get(h["status"], "chip-mid")
+        rng.append(f'<span class="{rcls}">{short} {_short_status(h)} {h["pos"]:.0f}%</span>')
+        rets.append(f'{short} {h["ret"]:+.0f}%')
+    return (
+        f'<div class="tile"><div class="tile-top"><div>'
+        f'<div class="tile-name">{html.escape(r["Name"])}</div>'
+        f'<div class="tile-sym">{html.escape(r["Symbol"])} · {html.escape(r["Group"])}</div></div>'
+        f'<div class="tile-price">{r["price"]:,.2f}</div></div>'
+        f'<div class="tile-row">{"".join(chips)}</div>'
+        f'<div class="tile-row">{"".join(rng)}</div>'
+        f'<div class="tile-ret">{" · ".join(rets)}</div></div>'
+    )
+
+
+def render_trend_tab(market):
+    cfg = MARKETS[market]
+    bench_sym = cfg["bench"]
+    symbols = tuple([s for s, _, _ in cfg["universe"]] + [bench_sym])
+    with st.spinner(f"Loading {cfg['title'].lower()}…"):
+        px = fetch_trend_prices(symbols)
+    bench_close = px[bench_sym].dropna() if (not px.empty and bench_sym in px.columns) else None
+
+    groups = ["All"] + list(dict.fromkeys(g for _, _, g in cfg["universe"]))
+    group_filter = st.radio("Show", groups, horizontal=True, key=f"{market}_group")
+
+    rows, closes, missing = [], {}, []
+    for sym, name, group in cfg["universe"]:
+        if px.empty or sym not in px.columns:
+            missing.append(sym)
+            continue
+        close = px[sym].dropna()
+        m = analyse_index(close, bench_close if sym != bench_sym else None)
+        if m is None:
+            missing.append(sym)
+            continue
+        rows.append({"Name": name, "Symbol": sym, "Group": group, **m})
+        closes[sym] = close
+    shown = [r for r in rows if group_filter == "All" or r["Group"] == group_filter]
+
+    st.markdown(
+        f'<div class="mk-head"><div class="mk-kicker">{len(shown)} instruments · benchmark {html.escape(bench_sym)}</div>'
+        f'<div class="mk-title">{html.escape(cfg["title"])}</div>'
+        f'<div class="mk-sub">{html.escape(cfg["subtitle"])}. Trend, range position and turn signals across three horizons.</div></div>',
+        unsafe_allow_html=True,
+    )
+
+    cards = []
+    for key, label, _, _ in HORIZONS:
+        valid = [r for r in shown if r[key] is not None]
+        bull = sum(1 for r in valid if r[key]["trend"] == "Bullish")
+        ob = sum(1 for r in valid if r[key]["status"] == "Overbought")
+        os_ = sum(1 for r in valid if r[key]["status"] == "Oversold")
+        cards.append(
+            f'<div class="sum-card"><div class="sum-h">{key} · {label}</div>'
+            f'<div class="sum-big">{bull} / {len(valid)}</div><div class="sum-small">bullish trend</div>'
+            f'<div class="sum-chips"><span class="chip-ob">{ob} overbought</span>'
+            f'<span class="chip-os">{os_} oversold</span></div></div>'
+        )
+    st.markdown('<div class="sum-row">' + "".join(cards) + "</div>", unsafe_allow_html=True)
+
+    if shown:
+        st.subheader("Market map")
+        st.markdown('<div class="tile-grid">' + "".join(_tile_html(r) for r in shown) + "</div>",
+                    unsafe_allow_html=True)
+        st.subheader("Turn signals")
+        st.caption("Three rules that flag a trend changing direction, each with its current state and the date it last flipped.")
+        sig_rows = []
+        for r in shown:
+            states = [r[k][0] for k in ("sig_ma", "sig_bo", "sig_rs") if r[k][0] is not None]
+            bull = sum(1 for s in states if s == "Bullish")
+            sig_rows.append({
+                "Name": r["Name"],
+                "Symbol": r["Symbol"],
+                "MA cross 50/200": _signal_label(r["sig_ma"]),
+                "Breakout 55/20": _signal_label(r["sig_bo"]),
+                f"Rel. strength vs {bench_sym}": _signal_label(r["sig_rs"]),
+                "Bullish rules": f"{bull} / {len(states)}" if states else "n/a",
+            })
+        sig_cols = ["MA cross 50/200", "Breakout 55/20", f"Rel. strength vs {bench_sym}"]
+        st.dataframe(_style_labels(pd.DataFrame(sig_rows), cols=sig_cols), use_container_width=True)
+
+        options = {f"{r['Name']} ({r['Symbol']})": r["Symbol"] for r in shown}
+        st.subheader("Trend chart")
+        pick = options[st.selectbox("Instrument", list(options.keys()), key=f"{market}_pick")]
+        close = closes[pick]
+        view = close[close.index >= close.index[-1] - pd.DateOffset(years=3)]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=view.index, y=view.values, name="Price", line=dict(color="#0f172a", width=2)))
+        for w, color in [(50, "#2962FF"), (100, "#FF9100"), (200, "#15803d")]:
+            ma = close.rolling(w).mean()
+            fig.add_trace(go.Scatter(x=view.index, y=ma.reindex(view.index).values, name=f"{w}-day average",
+                                     line=dict(color=color, width=1.4, dash="dot")))
+        for label, n, shade in [("Tertiary 3M", 63, "rgba(41,98,255,0.08)"),
+                                ("Secondary 9M", 189, "rgba(255,145,0,0.06)"),
+                                ("Primary 2Y", 504, "rgba(21,128,61,0.05)")]:
+            if len(close) > n:
+                fig.add_vrect(x0=close.index[-1 - n], x1=close.index[-1], fillcolor=shade, line_width=0,
+                              annotation_text=label, annotation_position="top left")
+        fig.update_layout(height=420, margin=dict(l=20, r=20, t=30, b=20), legend=dict(orientation="h", y=1.08))
+        st.plotly_chart(fig, use_container_width=True)
+
+        bar_rows = [r for r in shown
+                    if (cfg["bar_group"] is None or r["Group"] == cfg["bar_group"])
+                    and all(r[k] is not None for k, _, _, _ in HORIZONS)]
+        if bar_rows:
+            st.subheader("Returns by horizon")
+            fig_b = go.Figure()
+            for key, label, color in [("Tertiary", "3 months", "#2962FF"), ("Secondary", "9 months", "#FF9100"),
+                                      ("Primary", "2 years", "#15803d")]:
+                fig_b.add_trace(go.Bar(name=label, x=[r["Name"] for r in bar_rows],
+                                       y=[r[key]["ret"] for r in bar_rows], marker_color=color))
+            fig_b.update_layout(barmode="group", height=380, margin=dict(l=20, r=20, t=30, b=20), yaxis_title="Return (%)")
+            st.plotly_chart(fig_b, use_container_width=True)
+
+        with st.expander("Full detail table"):
+            table = pd.DataFrame([{
+                "Name": r["Name"], "Symbol": r["Symbol"], "Group": r["Group"],
+                "Price": f"{r['price']:,.2f}",
+                "RSI(14)": f"{r['rsi']:.0f}",
+                "MACD": "▲ positive" if r["macd"] > 0 else "▼ negative",
+                "vs 50D": f"{r['vs50']:+.1f}%" if r["vs50"] is not None else "n/a",
+                "vs 200D": f"{r['vs200']:+.1f}%" if r["vs200"] is not None else "n/a",
+                "2Y return": _ret_text(r["Primary"]), "2Y trend": _trend_label(r["Primary"]), "2Y range": _range_label(r["Primary"]),
+                "9M return": _ret_text(r["Secondary"]), "9M trend": _trend_label(r["Secondary"]), "9M range": _range_label(r["Secondary"]),
+                "3M return": _ret_text(r["Tertiary"]), "3M trend": _trend_label(r["Tertiary"]), "3M range": _range_label(r["Tertiary"]),
+            } for r in shown])
+            st.dataframe(_style_labels(table), use_container_width=True)
+
+        with st.expander("How trends are assigned"):
+            st.markdown(
+                "**Horizons.** Primary = 2 years (504 trading days), secondary = 9 months (189), tertiary = 3 months (63).\n\n"
+                "**Four checks per horizon:** (1) return over the horizon is positive; (2) price is above its moving average for that horizon "
+                "(200-day, 100-day, 50-day); (3) that moving average is rising over the horizon; (4) MACD histogram is positive.\n\n"
+                "**Bullish** = 3 or 4 checks passed. **Bearish** = 0–2 passed. The score shows how many passed.\n\n"
+                "**Overbought / oversold (range position).** Where today's price sits between the horizon's high and low: "
+                "0% = at the low, 100% = at the high. **80%+ = Overbought; 20%− = Oversold.**\n\n"
+                "**Turn signals.** MA cross 50/200 (confirmed 3 days); breakout above the prior 55-day high or below the prior 20-day low; "
+                f"relative strength vs {bench_sym} (ratio above its 50-day average, confirmed 3 days).\n\n"
+                "**Other indicators.** RSI(14) is a 14-day momentum measure (above 70 overbought, below 30 oversold). "
+                "'vs 50D' and 'vs 200D' show distance from those averages."
+            )
+    else:
+        st.info("No price history loaded for this group.")
+    if missing:
+        st.caption(f"No data returned for: {', '.join(missing)}.")
+    st.caption("Mechanical technical reads from Yahoo Finance data, not investment advice. "
+               "Futures are continuous contracts, so prices can jump when the front month rolls.")
+
+
 # ── Main area ───────────────────────────────────────────────────────────────
 
 n_stocks = len(st.session_state.watchlist)
@@ -2234,17 +3281,28 @@ with st.expander("How to use this app"):
         "Hover the ⓘ icons for metric definitions, or open the glossary in the sidebar."
     )
 
-if not st.session_state.watchlist:
-    st.markdown(
-        '<div class="empty-state"><div class="big">📭</div>'
-        '<div class="head">Your watchlist is empty</div>'
-        'Add a ticker in the sidebar to see its framework score, valuation models and report.</div>',
-        unsafe_allow_html=True,
-    )
-else:
-    # One tab per stock — clicking the tab loads that stock's full analysis
-    tab_labels = [f"{t}" for t in st.session_state.watchlist]
-    tabs = st.tabs(tab_labels)
-    for tab, ticker_sym in zip(tabs, st.session_state.watchlist):
-        with tab:
-            show_stock_tab(ticker_sym)
+top_stocks, top_macro, top_indices, top_commodities = st.tabs(["📈 Stocks", "🌐 Macro", "📊 Indices", "🛢️ Commodities"])
+
+with top_stocks:
+    if not st.session_state.watchlist:
+        st.markdown(
+            '<div class="empty-state"><div class="big">📭</div>'
+            '<div class="head">Your watchlist is empty</div>'
+            'Add a ticker in the sidebar to see its framework score, valuation models and report.</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        # One tab per stock — clicking the tab loads that stock's full analysis
+        tabs = st.tabs([f"{t}" for t in st.session_state.watchlist])
+        for tab, ticker_sym in zip(tabs, st.session_state.watchlist):
+            with tab:
+                show_stock_tab(ticker_sym)
+
+with top_macro:
+    render_macro_tab()
+
+with top_indices:
+    render_trend_tab("indices")
+
+with top_commodities:
+    render_trend_tab("commodities")

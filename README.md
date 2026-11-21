@@ -15,6 +15,9 @@ Interactive Streamlit app that scores a stock against the common principles from
 
 Each stock tab starts with a short summary report, which can be downloaded as Markdown.
 
+## Macro tab
+A separate tab that scores the macro regime (Buy / Hold / Sell) from rates, credit, growth, inflation, risk appetite, the dollar and commodities. It uses Yahoo Finance tickers and FRED series, and needs no API key. The full symbol list is in the tab. Signal thresholds are starting points and should be back-tested before use.
+
 ## Valuation models for loss-making growers
 - Probability-weighted scenarios: bear, base and bull cases, weighted by your odds.
 - Reverse DCF: the revenue growth the current price already assumes.
