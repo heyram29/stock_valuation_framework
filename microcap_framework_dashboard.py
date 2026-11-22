@@ -381,38 +381,53 @@ def format_number(n, is_pct=False, is_currency=False):
 
 @st.cache_data(ttl=3600)
 def get_stock_data(symbol):
-    """Fetches and returns only pickle-serializable data (DataFrames as JSON strings)."""
-    try:
-        stock = yf.Ticker(symbol)
-        info = stock.info
-        if not info or info.get("quoteType") is None:
+    """Fetches and returns only pickle-serializable data (DataFrames as JSON strings).
+
+    Raises on failure instead of returning None, so st.cache_data does not
+    cache a transient Yahoo error for an hour. Yahoo's info endpoint sometimes
+    answers 401 "Invalid Crumb" from hosted servers, so it is retried.
+    """
+    import time
+    stock = yf.Ticker(symbol)
+    info = None
+    last_err = None
+    for attempt in range(3):
+        try:
+            info = stock.info
+            if info and info.get("quoteType") is not None:
+                break
+            info = None
+        except Exception as e:
+            last_err = e
+            info = None
+        time.sleep(1.5 * (attempt + 1))
+    if info is None:
+        raise RuntimeError(f"Yahoo Finance did not return data for {symbol}"
+                           + (f" ({last_err})" if last_err else ""))
+
+    def df_to_json(df):
+        try:
+            return df.to_json() if df is not None and not df.empty else None
+        except Exception:
             return None
 
-        def df_to_json(df):
-            try:
-                return df.to_json() if df is not None and not df.empty else None
-            except Exception:
-                return None
+    # Fetch annual & quarterly statements safely
+    def safe_attr(attr):
+        try:
+            val = getattr(stock, attr, None)
+            return df_to_json(val)
+        except Exception:
+            return None
 
-        # Fetch annual & quarterly statements safely
-        def safe_attr(attr):
-            try:
-                val = getattr(stock, attr, None)
-                return df_to_json(val)
-            except Exception:
-                return None
-
-        return {
-            "info": dict(info),
-            "financials": safe_attr("financials"),
-            "balance": safe_attr("balance_sheet"),
-            "cashflow": safe_attr("cashflow"),
-            "quarterly_financials": safe_attr("quarterly_income_stmt"),
-            "quarterly_balance": safe_attr("quarterly_balance_sheet"),
-            "quarterly_cashflow": safe_attr("quarterly_cashflow"),
-        }
-    except Exception:
-        return None
+    return {
+        "info": dict(info),
+        "financials": safe_attr("financials"),
+        "balance": safe_attr("balance_sheet"),
+        "cashflow": safe_attr("cashflow"),
+        "quarterly_financials": safe_attr("quarterly_income_stmt"),
+        "quarterly_balance": safe_attr("quarterly_balance_sheet"),
+        "quarterly_cashflow": safe_attr("quarterly_cashflow"),
+    }
 
 
 @st.cache_data(ttl=3600)
@@ -1006,10 +1021,14 @@ def implied_growth(price, revenue, cash, debt, shares, burn_annual, years, margi
 def show_stock_tab(ticker_sym):
     """Render the full analysis UI for a single ticker inside a tab."""
     with st.spinner(f"Loading {ticker_sym}…"):
-        raw = get_stock_data(ticker_sym)
+        try:
+            raw = get_stock_data(ticker_sym)
+        except Exception:
+            raw = None
 
     if raw is None:
-        st.error(f"Could not load data for **{ticker_sym}**. Check the symbol and try again.")
+        st.error(f"Could not load data for **{ticker_sym}**. Yahoo Finance may be rate-limiting this server. "
+                 "Wait a minute and press R to reload, or check the symbol.")
         return
 
     info, financials, balance, cashflow, q_financials, q_balance, q_cashflow = parse_stock_data(raw)
