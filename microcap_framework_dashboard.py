@@ -834,12 +834,10 @@ def get_trend_filter(symbol):
     try:
         close = yf.Ticker(symbol).history(period="5y", auto_adjust=True)["Close"].dropna()
         sma50, sma200 = close.rolling(50).mean(), close.rolling(200).mean()
-        cond = (sma50 > sma200).where(sma200.notna()).dropna().astype(bool)
-        if cond.empty:
+        state, since = _confirmed_state((sma50 > sma200).where(sma200.notna()))
+        if state is None:
             return None
-        flips = cond.index[cond.ne(cond.shift(1)) & cond.shift(1).notna()]
-        since = flips[-1] if len(flips) else cond.index[0]
-        return {"state": "Bullish" if cond.iloc[-1] else "Bearish", "since": since.strftime("%Y-%m-%d")}
+        return {"state": state, "since": since.strftime("%Y-%m-%d")}
     except Exception:
         return None
 
@@ -2975,6 +2973,29 @@ def _breakout_state(close, up=55, down=20):
     return state, since
 
 
+def _horizon_state(close, hist, n, ma):
+    """Daily trend score (0-4) and a sticky Bullish/Bearish/Neutral state: 2 keeps the previous state."""
+    valid = ma.notna() & ma.shift(n).notna() & hist.notna()
+    score = (
+        (close > close.shift(n)).astype(float)
+        + (close > ma).astype(float)
+        + (ma > ma.shift(n)).astype(float)
+        + (hist > 0).astype(float)
+    ).where(valid)
+    state, since, last = None, None, None
+    for dt, s in score.dropna().items():
+        last = s
+        if s >= 3:
+            new = "Bullish"
+        elif s <= 1:
+            new = "Bearish"
+        else:
+            new = state or "Neutral"
+        if new != state:
+            state, since = new, dt
+    return state, since, last
+
+
 def analyse_index(close, bench=None):
     if len(close) < 260:
         return None
@@ -2984,6 +3005,7 @@ def analyse_index(close, bench=None):
     out = {
         "price": last,
         "rsi": float(rsi.iloc[-1]),
+        "rsi_status": "Overbought" if rsi.iloc[-1] >= 80 else ("Oversold" if rsi.iloc[-1] <= 20 else "Neutral"),
         "macd": float(hist.iloc[-1]),
         "vs50": (last / smas[50].iloc[-1] - 1) * 100 if pd.notna(smas[50].iloc[-1]) else None,
         "vs200": (last / smas[200].iloc[-1] - 1) * 100 if pd.notna(smas[200].iloc[-1]) else None,
@@ -2993,26 +3015,24 @@ def analyse_index(close, bench=None):
         if len(close) <= n or pd.isna(ma.iloc[-1]) or pd.isna(ma.iloc[-1 - n]):
             out[key] = None
             continue
+        state, since, score = _horizon_state(close, hist, n, ma)
+        if state is None:
+            out[key] = None
+            continue
         ret = last / float(close.iloc[-1 - n]) - 1
-        checks = [
-            ret > 0,
-            last > ma.iloc[-1],
-            ma.iloc[-1] > ma.iloc[-1 - n],
-            hist.iloc[-1] > 0,
-        ]
-        score = sum(checks)
         window = close.iloc[-(n + 1):]
         hi, lo = float(window.max()), float(window.min())
         pos = (last - lo) / (hi - lo) * 100 if hi > lo else 50.0
         status = "Overbought" if pos >= 80 else "Oversold" if pos <= 20 else "Neutral"
-        out[key] = {"ret": ret * 100, "score": score, "trend": "Bullish" if score >= 3 else "Bearish",
+        out[key] = {"ret": ret * 100, "score": int(score), "trend": state, "since": since,
                     "pos": pos, "status": status}
     ma_cond = (smas[50] > smas[200]).where(smas[50].notna() & smas[200].notna())
     out["sig_ma"] = _confirmed_state(ma_cond)
     out["sig_bo"] = _breakout_state(close)
     if bench is not None:
         ratio = (close / bench).dropna()
-        out["sig_rs"] = _confirmed_state(ratio > ratio.rolling(50).mean())
+        rs_ma = ratio.rolling(50).mean()
+        out["sig_rs"] = _confirmed_state((ratio > rs_ma).where(rs_ma.notna()))
     else:
         out["sig_rs"] = (None, None)
     return out
@@ -3058,6 +3078,8 @@ def _short_status(h):
 
 def _tile_html(r):
     chips, rng, rets = [], [], []
+    rsi_cls = {"Overbought": "chip-ob", "Oversold": "chip-os"}.get(r["rsi_status"], "chip-mid")
+    rsi_chip = f'<span class="{rsi_cls}">RSI {r["rsi"]:.0f} · {r["rsi_status"]}</span>'
     for key, _, _, _ in HORIZONS:
         short, h = HORIZON_SHORT[key], r[key]
         if h is None:
@@ -3065,7 +3087,7 @@ def _tile_html(r):
             rng.append(f'<span class="chip-na">{short} n/a</span>')
             rets.append(f"{short} n/a")
             continue
-        cls = "chip-bull" if h["trend"] == "Bullish" else "chip-bear"
+        cls = {"Bullish": "chip-bull", "Bearish": "chip-bear"}.get(h["trend"], "chip-mid")
         chips.append(f'<span class="{cls}">{short} {h["trend"]} {h["score"]}/4</span>')
         rcls = {"Overbought": "chip-ob", "Oversold": "chip-os"}.get(h["status"], "chip-mid")
         rng.append(f'<span class="{rcls}">{short} {_short_status(h)} {h["pos"]:.0f}%</span>')
@@ -3077,6 +3099,7 @@ def _tile_html(r):
         f'<div class="tile-price">{r["price"]:,.2f}</div></div>'
         f'<div class="tile-row">{"".join(chips)}</div>'
         f'<div class="tile-row">{"".join(rng)}</div>'
+        f'<div class="tile-row">{rsi_chip}</div>'
         f'<div class="tile-ret">{" · ".join(rets)}</div></div>'
     )
 
@@ -3098,7 +3121,8 @@ def render_trend_tab(market):
             missing.append(sym)
             continue
         close = px[sym].dropna()
-        m = analyse_index(close, bench_close if sym != bench_sym else None)
+        rs_bench = bench_close if (sym != bench_sym and not sym.startswith("^")) else None
+        m = analyse_index(close, rs_bench)
         if m is None:
             missing.append(sym)
             continue
@@ -3135,7 +3159,7 @@ def render_trend_tab(market):
         st.caption("Three rules that flag a trend changing direction, each with its current state and the date it last flipped.")
         sig_rows = []
         for r in shown:
-            states = [r[k][0] for k in ("sig_ma", "sig_bo", "sig_rs") if r[k][0] is not None]
+            states = [r[k][0] for k in ("sig_ma", "sig_bo") if r[k][0] is not None]
             bull = sum(1 for s in states if s == "Bullish")
             sig_rows.append({
                 "Name": r["Name"],
@@ -3143,7 +3167,7 @@ def render_trend_tab(market):
                 "MA cross 50/200": _signal_label(r["sig_ma"]),
                 "Breakout 55/20": _signal_label(r["sig_bo"]),
                 f"Rel. strength vs {bench_sym}": _signal_label(r["sig_rs"]),
-                "Bullish rules": f"{bull} / {len(states)}" if states else "n/a",
+                "Trend rules bullish": f"{bull} / {len(states)}" if states else "n/a",
             })
         sig_cols = ["MA cross 50/200", "Breakout 55/20", f"Rel. strength vs {bench_sym}"]
         st.dataframe(_style_labels(pd.DataFrame(sig_rows), cols=sig_cols), use_container_width=True)
@@ -3186,6 +3210,7 @@ def render_trend_tab(market):
                 "Name": r["Name"], "Symbol": r["Symbol"], "Group": r["Group"],
                 "Price": f"{r['price']:,.2f}",
                 "RSI(14)": f"{r['rsi']:.0f}",
+                "RSI status": r["rsi_status"],
                 "MACD": "▲ positive" if r["macd"] > 0 else "▼ negative",
                 "vs 50D": f"{r['vs50']:+.1f}%" if r["vs50"] is not None else "n/a",
                 "vs 200D": f"{r['vs200']:+.1f}%" if r["vs200"] is not None else "n/a",
@@ -3205,7 +3230,7 @@ def render_trend_tab(market):
                 "0% = at the low, 100% = at the high. **80%+ = Overbought; 20%− = Oversold.**\n\n"
                 "**Turn signals.** MA cross 50/200 (confirmed 3 days); breakout above the prior 55-day high or below the prior 20-day low; "
                 f"relative strength vs {bench_sym} (ratio above its 50-day average, confirmed 3 days).\n\n"
-                "**Other indicators.** RSI(14) is a 14-day momentum measure (above 70 overbought, below 30 oversold). "
+                "**Other indicators.** RSI(14) is a 14-day momentum measure: 80 or more is Overbought, 20 or less is Oversold. Range position and RSI are shown side by side and can disagree."
                 "'vs 50D' and 'vs 200D' show distance from those averages."
             )
     else:
