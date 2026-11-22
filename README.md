@@ -23,14 +23,41 @@ A separate tab that scores the macro regime (Buy / Hold / Sell) from rates, cred
 - Reverse DCF: the revenue growth the current price already assumes.
 - Peer growth regression: EV/Sales fitted against revenue growth across peers you enter.
 
+## Installation
+
+Requires Python 3.10 or newer.
+
+1. Clone the repository and go to the folder:
+   ```bash
+   git clone https://github.com/heyram29/stock_valuation_framework.git
+   cd stock_valuation_framework
+   ```
+2. (Optional) Create and activate a virtual environment:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate          # Windows
+   source .venv/bin/activate       # macOS / Linux
+   ```
+3. Install the dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 ## How to run
 
 ```bash
-pip install -r requirements.txt
 streamlit run microcap_framework_dashboard.py
 ```
 
-Then open the local URL (usually http://localhost:8501), enter a ticker, and click **Analyze Stock**.
+Streamlit prints a local address, normally http://localhost:8501. If that port is busy it uses the next free one. Open the address, enter a ticker on the Stocks tab, and click **Analyze Stock**.
+
+On Windows with Anaconda, run `C:\Users\<you>\anaconda3\Scripts\streamlit.exe run microcap_framework_dashboard.py` so the app uses the Python that has the dependencies installed.
+
+## Troubleshooting
+
+- **`ModuleNotFoundError: No module named 'yfinance'`**: the dependencies are installed in a different Python. Install them with the same `pip` (or use the Anaconda `streamlit.exe` above).
+- **Stocks tab shows "Could not load data"**: Yahoo Finance is rate-limiting or refusing the connection. Wait a minute and reload. Hosted servers are often blocked by Yahoo, so this usually works only on a home computer.
+- **Yahoo `401 Invalid Crumb` lines in the log**: yfinance prints these when Yahoo refuses a request. They are harmless if the data still loads.
 
 ## Notes
 - Best for US-listed stocks. Micro/small-caps often have incomplete data.
