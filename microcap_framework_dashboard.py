@@ -1111,7 +1111,8 @@ def show_stock_tab(ticker_sym):
         else:                       size_label = "Large/Mega-cap"
 
     roic = compute_roic(financials, balance)
-    flow = get_flow_data(ticker_sym)
+    with st.spinner(f"Loading insider and holder data for {ticker_sym}…"):
+        flow = get_flow_data(ticker_sym)
     qm = compute_quarterly_metrics(q_financials)
     scores, explanations, maxes = compute_scores(info, runway_months, dilution_pct, roic, flow, qm)
     total_possible = sum(maxes.values())
@@ -2766,7 +2767,8 @@ def render_macro_tab():
     with st.spinner("Loading macro data…"):
         px = fetch_macro_prices()
         fred = {sid: fetch_fred(sid) for sid in MACRO_FRED}
-    rows, series_map, info = compute_macro(px, fred)
+    with st.spinner("Calculating macro regime…"):
+        rows, series_map, info = compute_macro(px, fred)
 
     verdict = info["verdict"]
     color = {"Buy": "#2e7d32", "Hold": "#b26a00", "Sell": "#c62828"}.get(verdict, "#64748b")
@@ -3113,22 +3115,34 @@ def render_trend_tab(market):
     bench_close = px[bench_sym].dropna() if (not px.empty and bench_sym in px.columns) else None
 
     groups = ["All"] + list(dict.fromkeys(g for _, _, g in cfg["universe"]))
-    group_filter = st.radio("Show", groups, horizontal=True, key=f"{market}_group")
+    group_filter = st.radio("Group", groups, horizontal=True, key=f"{market}_group", label_visibility="collapsed")
 
     rows, closes, missing = [], {}, []
-    for sym, name, group in cfg["universe"]:
-        if px.empty or sym not in px.columns:
-            missing.append(sym)
-            continue
-        close = px[sym].dropna()
-        rs_bench = bench_close if (sym != bench_sym and not sym.startswith("^")) else None
-        m = analyse_index(close, rs_bench)
-        if m is None:
-            missing.append(sym)
-            continue
-        rows.append({"Name": name, "Symbol": sym, "Group": group, **m})
-        closes[sym] = close
+    with st.spinner("Calculating trends…"):
+        for sym, name, group in cfg["universe"]:
+            if px.empty or sym not in px.columns:
+                missing.append(sym)
+                continue
+            close = px[sym].dropna()
+            rs_bench = bench_close if (sym != bench_sym and not sym.startswith("^")) else None
+            m = analyse_index(close, rs_bench)
+            if m is None:
+                missing.append(sym)
+                continue
+            rows.append({"Name": name, "Symbol": sym, "Group": group, **m})
+            closes[sym] = close
     shown = [r for r in rows if group_filter == "All" or r["Group"] == group_filter]
+    f_cols = st.columns(3)
+    trend_filters = {}
+    for col, (key, label, _, _) in zip(f_cols, HORIZONS):
+        trend_filters[key] = col.selectbox(
+            f"{key} trend ({label})", ["Any", "Bullish", "Bearish"], key=f"{market}_f_{key}"
+        )
+    shown = [
+        r for r in shown
+        if all(want == "Any" or (r[key] is not None and r[key]["trend"] == want)
+               for key, want in trend_filters.items())
+    ]
 
     st.markdown(
         f'<div class="mk-head"><div class="mk-kicker">{len(shown)} instruments · benchmark {html.escape(bench_sym)}</div>'
@@ -3234,7 +3248,7 @@ def render_trend_tab(market):
                 "'vs 50D' and 'vs 200D' show distance from those averages."
             )
     else:
-        st.info("No price history loaded for this group.")
+        st.info("No instruments match these filters.")
     if missing:
         st.caption(f"No data returned for: {', '.join(missing)}.")
     st.caption("Mechanical technical reads from Yahoo Finance data, not investment advice. "
